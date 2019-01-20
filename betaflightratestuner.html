@@ -285,6 +285,28 @@
                             bfcalc(expo_otx_calc(i,otxNegExpo3), bfRate3, bfExpo3, bfSuper3))/stickIter/200
                         ]);
                     }
+                } else if (checkOptions[3].checked) {
+                    //avg slope
+                    var avg_sum=[0, 0, 0];
+                    var n=1;
+                    for (var i = 0; i <= stickEnd; i+=stickIter) {
+                        avg_sum[0]=avg_sum[0]
+                            +(bfcalc(expo_otx_calc(i+stickIter,otxNegExpo1), bfRate1, bfExpo1, bfSuper1)-
+                              bfcalc(expo_otx_calc(i,otxNegExpo1), bfRate1, bfExpo1, bfSuper1))/stickIter/200;
+                        avg_sum[1]=avg_sum[1]
+                            +(bfcalc(expo_otx_calc(i+stickIter,otxNegExpo2), bfRate1, bfExpo1, bfSuper2)-
+                              bfcalc(expo_otx_calc(i,otxNegExpo2), bfRate1, bfExpo1, bfSuper2))/stickIter/200;
+                        avg_sum[2]=avg_sum[2]
+                            +(bfcalc(expo_otx_calc(i+stickIter,otxNegExpo3), bfRate3, bfExpo3, bfSuper3)-
+                              bfcalc(expo_otx_calc(i,otxNegExpo3), bfRate3, bfExpo3, bfSuper3))/stickIter/200;
+                        data.addRow([
+                            i,
+                            avg_sum[0]/n,
+                            avg_sum[1]/n,
+                            avg_sum[2]/n
+                        ]);
+                        n=n+1;
+                    }
                 } else {
                     for (var i = 0; i <= stickEnd; i+=stickIter) {
                         data.addRow([
@@ -444,9 +466,15 @@
                 checkOptions[0] = document.getElementById("zoom25");
                 checkOptions[1] = document.getElementById("zoom50");
                 checkOptions[2] = document.getElementById("deriv");
+                checkOptions[3] = document.getElementById("avg");
 
                 $(checkOptions).on('change',function(evt){
-                    $(checkOptions).removeAttr('style').not(evt.target).prop('checked',false);
+                    $(checkOptions).not(evt.target).prop('checked',false);
+                    $(checkOptions).parent().removeAttr('style');
+                    if(evt.target.checked){
+                        $(evt.target).parent().css('color','blue');
+                    }
+                        
                     drawChart(0);
                 });
                 $(checkOptions).prop('checked',false);
@@ -604,17 +632,27 @@
                 </div>
             </div>
         </div>
-        <div>Zoom 0%-25%<input id="zoom25" type="checkbox">Zoom 0%-50%<input id="zoom50" type="checkbox">Derivative<input id="deriv" type="checkbox"></div>
+        <div style="max-width:900px">
+            <div style="margin-left:auto; margin-right:auto; text-align:center; padding-top:20px">
+                <span>Zoom 0%-25%<input id="zoom25" type="checkbox"></span>
+                <span>Zoom 0%-50%<input id="zoom50" type="checkbox"></span>
+                <span>Derivative<input id="deriv" type="checkbox"></span>
+                <span>Avg. Slope<input id="avg" type="checkbox"></span>
+            </div>
+        </div>
         <h3>Notes</h3>
-        <div>
-            <span>-- <b>Slope</b> sets the rate-increase at mid-stick. It is equivalent to RC Rate when RC Expo is zero.</span><br>
-            <span>-- <b>Shape</b> determines how the rate curve grows versus stick command.  Shape=0 is equivalent to using zero Super Rate. Shape=1 is equivalent to using zero RC Expo.</span><br>
-            <span>-- <b>OTX Expo</b> refers to the expo curve on an Open TX-based tranmitter.  Most will set it to zero, but it's included here as it can extend rate curve possibilities.</span><br>
-            <span>-- Positive <b>OTX Expo</b> is discouraged due to loss of resolution near mid-stick.</span><br>
-            <span>-- Negative <b>OTX Expo</b> can increase resolution near mid-stick, grow the rate curve faster, and allows Roll & Pitch to have different initial slopes.</span><br>
-            <span>-- Checking the <b>Derivative</b> box plots the change in <b>Slope</b> versus stick position.</span>
-            <br><br>
-            <span>* - Giving Pitch and Roll different <b>Slope</b> values requires use of OTX Expo. Check the "Lock Roll/Pitch Slope" box if you would like them to have the same starting-slope.</span><br>
+        <div style="max-width:900px">
+            <ul>
+                <li><b>Slope</b> sets the rate-increase at mid-stick. It is equivalent to RC Rate when RC Expo is zero.</li>
+                <li><b>Shape</b> determines how the rate curve grows versus stick command.  Shape=0 is equivalent to using zero Super Rate. Shape=1 is equivalent to using zero RC Expo.</li>
+                <li><b>OTX Expo</b> refers to the expo curve on an Open TX-based tranmitter.  Most will set it to zero, but it's included here as it can extend rate curve possibilities.</li>
+                <li>Positive <b>OTX Expo</b> is discouraged due to loss of resolution near mid-stick.</li>
+                <li>Negative <b>OTX Expo</b> can increase resolution near mid-stick, grow the rate curve faster, and allows Roll & Pitch to have different initial slopes.</li>
+                <li>Checking the <b>Derivative</b> box plots the change in <b>Slope</b> versus stick position. Higher values will feel less controllable.</li>
+                <li>Checking the <b>Avg. Slope</b> box plots the average <b>Slope</b> versus stick position. For a throw of the sticks, higher values will accumulate greater change in angle.
+                    So, for example, as <b>Shape=0</b> accumulates less average slope than <b>Shape=1</b>, a higher <b>Slope</b> is required to give the same "throw"/"feel" when using <b>Shape=0</b>.</li>
+            </ul>
+            <span>* - Giving Pitch and Roll different <b>Slope</b> values requires use of OTX Expo. Check the "<b>Lock Roll/Pitch Slope</b>" box if you would like them to have the same starting-slope.</span><br>
         </div>
     </body>
 </html>
