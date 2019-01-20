@@ -1,0 +1,580 @@
+<html>
+    <head>
+        <!-- <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script> -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous"> -->
+        <link rel="stylesheet" href="betaflight_rates.css">
+
+        <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+        <script type="text/javascript">
+
+            var doDraw=true;
+            var checkBox = null;
+
+            var clamp = function(n, minn, maxn) {
+                return Math.max(Math.min(maxn, n), minn);
+            }
+
+            // BF rate calculation function
+            var bfcalc = function(rcCommand, rcRate, expo, superRate) {
+
+                var absRcCommand = Math.abs(rcCommand);
+
+                if(rcRate > 2.0)
+                    rcRate = rcRate + (14.54 * (rcRate - 2.0))
+
+                if(expo != 0)
+                    rcCommand = rcCommand * Math.abs(rcCommand)**3 * expo + rcCommand * (1.0 - expo)
+
+                angleRate = 200.0 * rcRate * rcCommand;
+                if(superRate != 0){
+                    rcSuperFactor = 1.0 / (clamp(1.0 - absRcCommand * (superRate), 0.01, 1.00))
+                    angleRate *= rcSuperFactor
+                }
+
+                return angleRate
+            }
+
+            //Open TX expo function
+            var expo_otx_calc = function(rcCommand, expo_otx){
+                if(expo_otx < 0){
+                    rcCommand = 1+expo_otx*(1-rcCommand)**3-(1-rcCommand)*(1+expo_otx)
+                } else if(expo_otx > 0){
+                    rcCommand = expo_otx*rcCommand**3+rcCommand*(1-expo_otx)
+                }
+                return rcCommand
+            }
+
+            var updateRcRateUnadjusted = function(expo_otx, Slope, Maxdeg, Shape){
+                rcRate = Slope*Shape+(1-Shape)*Maxdeg/200;
+                rcRate = rcRate/(1-2*expo_otx);
+                return rcRate
+            }
+
+            var adjustRcRate = function(rcRate){
+                rcRate = Math.min(rcRate,2+(rcRate-2)/14.54);
+                return Math.round(100*rcRate)/100
+            }
+
+            var unadjustedRcRate = function(rcRate){
+                rcRate = rcRate+Math.max(0,(rcRate-2)*14.54);
+                return rcRate
+            }
+
+            var updateSuperRate = function(rcRate,Maxdeg){
+                //must be real rcRate
+                superRate = Math.max(0,1-200*rcRate/Maxdeg);
+                return Math.round(100*superRate)/100
+            }
+
+            var updateExpo = function(rcRate,expo_otx,Slope){
+                //must be real rcRate
+                expo = 1-Slope/(rcRate*(1-2*expo_otx));
+                return Math.round(100*expo)/100
+            }
+
+            var updateExpo_otx = function(rcRate,expo,Slope){
+                //must be real rcRate
+                expo_otx = -Slope/(rcRate*(1-expo))/2+0.5;
+                return Math.round(100*expo_otx)/100
+            }
+
+            var updateSlope = function(rcRate,expo,expo_otx){
+                //must be real rcRate
+                Slope = rcRate*(1-expo)*(1-2*expo_otx);
+                return Slope
+            }
+
+            var updateMaxdeg = function(rcRate,superRate){
+                //must be real rcRate
+                Maxdeg = rcRate*200/(1-superRate);
+                return Maxdeg
+            }
+
+            var updateShape = function(rcRate,expo_otx,Slope,Maxdeg){
+                //must be real rcRate
+                Shape = (rcRate*(1-2*expo_otx)-Maxdeg/200)/(Slope-Maxdeg/200);
+                return Shape
+            }
+
+            function drawChart(update) {
+
+                doDraw=false;
+
+                if (update==1){
+                    //update tuning inputs/sliders
+                    //(1 get input value, 2 update local sliders, 3 calc, 4 update calc'd inputs&sliders)
+
+                    //Roll.1
+                    Slope1 = clamp(parseFloat($('#Slope1').val(), 10),0,3);
+                    Maxdeg1 = clamp(parseFloat($('#Maxdeg1').val(), 10),0,3000);
+                    Shape1 = clamp(parseFloat($('#Shape1').val(), 10),0,1);
+                    otxNegExpo1 = clamp(parseFloat($('#otxNegExpo1').val(), 10),-1,1);
+                    //Roll.2
+                    $('#SlopeSlider1').val(Slope1).change();
+                    $('#MaxdegSlider1').val(Maxdeg1).change();
+                    $('#ShapeSlider1').val(Shape1).change();
+                    $('#otxNegExpoSlider1').val(otxNegExpo1).change();
+                    //Roll.3,4
+                    rc = updateRcRateUnadjusted(otxNegExpo1, Slope1, Maxdeg1, Shape1);
+                     $('#bfRate1').val(adjustRcRate(rc)).change();
+                     $('#bfExpo1').val(updateExpo(rc,otxNegExpo1,Slope1)).change();
+                     $('#bfSuper1').val(updateSuperRate(rc,Maxdeg1)).change();
+                     $('#bfRateSlider1').val(adjustRcRate(rc)).change();
+                     $('#bfExpoSlider1').val(updateExpo(rc,otxNegExpo1,Slope1)).change();
+                     $('#bfSuperSlider1').val(updateSuperRate(rc,Maxdeg1)).change();
+
+                    //Pitch.1
+                    if(checkBox.checked){
+                        Slope2 = Slope1;
+                        $('#pitchValue').text($('#Slope1').val().toString());
+                        otxNegExpo2 = otxNegExpo1;
+                        $('#otxValue').text($('#otxNegExpo1').val().toString());
+                    } else {
+                        Slope2 = clamp(parseFloat($('#Slope2').val(), 10),0,3);
+                        otxNegExpo2 = clamp(-Slope2/(rc*(1-parseFloat($('#bfExpo1').val(), 10)))/2+0.5,-1,1);
+                    }
+                    
+                    Maxdeg2 = clamp(parseFloat($('#Maxdeg2').val(), 10),0,3000);
+                    //Shape2 = clamp((rc-Maxdeg2/200)/(Slope2-Maxdeg2/200),0,1);
+                    
+                    //Pitch.2
+                    $('#SlopeSlider2').val(Slope2).change();
+                    $('#MaxdegSlider2').val(Maxdeg2).change();
+                    $('#otxNegExpoSlider2').val(otxNegExpo2).change();
+                    //Pitch.3,4
+                    $('#bfSuper2').val(updateSuperRate(rc,Maxdeg2)).change();
+                    $('#bfSuperSlider2').val(updateSuperRate(rc,Maxdeg2)).change();
+                    $('#otxNegExpo2').val(Math.round(100*otxNegExpo2)/100).change();
+
+                    //Yaw.1
+                    Slope3 = clamp(parseFloat($('#Slope3').val(), 10),0,3);
+                    Maxdeg3 = clamp(parseFloat($('#Maxdeg3').val(), 10),0,3000);
+                    Shape3 = clamp(parseFloat($('#Shape3').val(), 10),0,1);
+                    otxNegExpo3 = clamp(parseFloat($('#otxNegExpo3').val(), 10),-1,1);
+                    //Yaw.2
+                    $('#SlopeSlider3').val(Slope3).change();
+                    $('#MaxdegSlider3').val(Maxdeg3).change();
+                    $('#ShapeSlider3').val(Shape3).change();
+                    $('#otxNegExpoSlider3').val(otxNegExpo3).change();
+                    //Yaw.3,4
+                    rc = updateRcRateUnadjusted(otxNegExpo3, Slope3, Maxdeg3, Shape3);
+                     $('#bfRate3').val(adjustRcRate(rc)).change();
+                     $('#bfExpo3').val(updateExpo(rc,otxNegExpo3,Slope3)).change();
+                     $('#bfSuper3').val(updateSuperRate(rc,Maxdeg3)).change();
+                     $('#bfRateSlider3').val(adjustRcRate(rc)).change();
+                     $('#bfExpoSlider3').val(updateExpo(rc,otxNegExpo3,Slope3)).change();
+                     $('#bfSuperSlider3').val(updateSuperRate(rc,Maxdeg3)).change();
+
+                }
+
+                bfRate1 = clamp(parseFloat($('#bfRate1').val(), 10),0,2.2);
+                bfExpo1 = clamp(parseFloat($('#bfExpo1').val(), 10),0,1);
+                bfSuper1 = clamp(parseFloat($('#bfSuper1').val(), 10),0,1);
+                otxNegExpo1 = clamp(parseFloat($('#otxNegExpo1').val(), 10),-1,1);
+
+                bfSuper2 = clamp(parseFloat($('#bfSuper2').val(), 10),0,1);
+                if(checkBox.checked){
+                    otxNegExpo2 = otxNegExpo1;
+                    $('#otxValue').text($('#otxNegExpo1').val().toString());
+                } else {
+                    otxNegExpo2 = clamp(parseFloat($('#otxNegExpo2').val(), 10),-1,1);
+                }
+
+                bfRate3 = clamp(parseFloat($('#bfRate3').val(), 10),0,2.2);
+                bfExpo3 = clamp(parseFloat($('#bfExpo3').val(), 10),0,1);
+                bfSuper3 = clamp(parseFloat($('#bfSuper3').val(), 10),0,1);
+                otxNegExpo3 = clamp(parseFloat($('#otxNegExpo3').val(), 10),-1,1);
+
+                if (update==0 || update==undefined){
+                    //update configurator inputs/sliders
+                    //(1 get input value, 2 update local sliders, 3 calc, 4 update calc'd inputs&sliders)
+
+                    //Roll.1 (above)
+                    //Roll.2
+                    $('#bfRateSlider1').val(bfRate1).change();
+                    $('#bfExpoSlider1').val(bfExpo1).change();
+                    $('#bfSuperSlider1').val(bfSuper1).change();
+                    $('#otxNegExpoSlider1').val(otxNegExpo1).change();
+                    //Roll.3
+                    rc = clamp(unadjustedRcRate(bfRate1),0,3);
+                    slp=clamp(updateSlope(rc,bfExpo1,otxNegExpo1),0,3);
+                    mxdeg=clamp(updateMaxdeg(rc,bfSuper1),0,3000);
+                    shp=clamp(updateShape(rc,otxNegExpo1,slp,mxdeg),0,1);
+                    //Roll.4
+                    $('#Slope1').val(Math.round(100*slp)/100).change();
+                    $('#Maxdeg1').val(Math.round(mxdeg)).change();
+                    $('#Shape1').val(Math.round(100*shp)/100).change();
+                    $('#SlopeSlider1').val(slp).change();
+                    $('#MaxdegSlider1').val(mxdeg).change();
+                    $('#ShapeSlider1').val(shp).change();
+                   
+                    //Pitch.1 (above)
+                    //Pitch.2
+                    $('#bfSuperSlider2').val(bfSuper2).change();
+                    $('#otxNegExpoSlider2').val(otxNegExpo2).change();
+                    if(checkBox.checked){
+                        $('#otxValue').show().text($('#otxNegExpo1').val().toString());
+                    }
+                    //Pitch.3
+                    slp=clamp(updateSlope(rc,bfExpo1,otxNegExpo2),0,3);
+                    mxdeg=clamp(updateMaxdeg(rc,bfSuper2),0,3000);
+                    //shp=updateShape(rc,otxNegExpo2,slp,mxdeg);
+                    //Pitch.4
+                    $('#Slope2').val(Math.round(100*slp)/100).change();
+                    if(checkBox.checked){
+                        $('#pitchValue').show().text($('#Slope2').val().toString());
+                    }
+                    $('#Maxdeg2').val(Math.round(mxdeg)).change();
+                    $('#SlopeSlider2').val(slp).change();
+                    $('#MaxdegSlider2').val(mxdeg).change();
+
+                    //Yaw.1 (above)
+                    //Yaw.2
+                    $('#bfRateSlider3').val(bfRate3).change();
+                    $('#bfExpoSlider3').val(bfExpo3).change();
+                    $('#bfSuperSlider3').val(bfSuper3).change();
+                    $('#otxNegExpoSlider3').val(otxNegExpo3).change();
+                    //Yaw.3
+                    rc = clamp(unadjustedRcRate(bfRate3),0,3);
+                    slp=clamp(updateSlope(rc,bfExpo3,otxNegExpo3),0,3);
+                    mxdeg=clamp(updateMaxdeg(rc,bfSuper3),0,3000);
+                    shp=clamp(updateShape(rc,otxNegExpo3,slp,mxdeg),0,1);
+                    //Yaw.4
+                    $('#Slope3').val(Math.round(100*slp)/100).change();
+                    $('#Maxdeg3').val(Math.round(mxdeg)).change();
+                    $('#Shape3').val(Math.round(100*shp)/100).change();
+                    $('#SlopeSlider3').val(slp).change();
+                    $('#MaxdegSlider3').val(mxdeg).change();
+                    $('#ShapeSlider3').val(shp).change();
+
+
+                }
+
+
+                var ratesData = [];
+
+                var data = new google.visualization.DataTable();
+				data.addColumn('number', 'Stick Input');
+                data.addColumn('number', 'ROLL');
+                data.addColumn('number', 'PITCH');
+                data.addColumn('number', 'YAW');
+
+                for (var i = 0; i <= 1; i+=0.01) {
+                    data.addRow([
+                        i,
+                        bfcalc(expo_otx_calc(i,otxNegExpo1), bfRate1, bfExpo1, bfSuper1),
+                        bfcalc(expo_otx_calc(i,otxNegExpo2), bfRate1, bfExpo1, bfSuper2),
+                        bfcalc(expo_otx_calc(i,otxNegExpo3), bfRate3, bfExpo3, bfSuper3)
+                    ]);
+                }
+
+                var options = {
+                    width: 900,
+                    height: 600,
+                    titlePosition: 'none',
+                    curveType: 'function',
+                    legend: {
+                        position: 'bottom',
+                        textStyle: {color: "#888"}
+                    },
+                    backgroundColor: { fill:'transparent' },
+                    hAxis: {
+                        baselineColor: "#888",
+                        gridlines: {color: "#888"},
+                        textStyle: {color: "#888"}
+                    },
+                    vAxis: {
+                        baselineColor: "#888",
+                        gridlines: {color: "#888"},
+                        textStyle: {color: "#888"}
+                    }
+                };
+
+                var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+
+                chart.draw(data, options);
+
+                doDraw = true;
+            }
+
+            $( document ).ready(function() {
+                google.charts.load('current', {'packages':['corechart']});
+                google.charts.setOnLoadCallback(drawChart);
+                //callbacks
+
+                //sliders, configurator
+                $('#bfRateSlider1').on('input', function() {
+                    if (doDraw)
+                        $('#bfRate1').val(this.value).change();
+                });
+                $('#bfExpoSlider1').on('input', function() {
+                    if (doDraw)
+                        $('#bfExpo1').val(this.value).change();
+                });
+                $('#bfSuperSlider1').on('input', function() {
+                    if (doDraw)
+                        $('#bfSuper1').val(this.value).change();
+                });
+                $('#otxNegExpoSlider1').on('input', function() {
+                    if (doDraw)
+                        $('#otxNegExpo1').val(this.value).change();
+                });
+
+                $('#bfSuperSlider2').on('input', function() {
+                    if (doDraw)
+                        $('#bfSuper2').val(this.value).change();
+                });
+                $('#otxNegExpoSlider2').on('input', function() {
+                    if (doDraw)
+                        $('#otxNegExpo2').val(this.value).change();
+                });
+
+                $('#bfRateSlider3').on('input', function() {
+                    if (doDraw)
+                        $('#bfRate3').val(this.value).change();
+                });
+                $('#bfExpoSlider3').on('input', function() {
+                    if (doDraw)
+                        $('#bfExpo3').val(this.value).change();
+                });
+                $('#bfSuperSlider3').on('input', function() {
+                    if (doDraw)
+                        $('#bfSuper3').val(this.value).change();
+                });
+                $('#otxNegExpoSlider3').on('input', function() {
+                    if (doDraw)
+                        $('#otxNegExpo3').val(this.value).change();
+                });
+
+                //sliders, tuning
+                $('#SlopeSlider1').on('input', function() {
+                    if (doDraw)
+                        $('#Slope1').val(this.value).change();
+                });
+                $('#MaxdegSlider1').on('input', function() {
+                    if (doDraw)
+                        $('#Maxdeg1').val(this.value).change();
+                });
+                $('#ShapeSlider1').on('input', function() {
+                    if (doDraw)
+                        $('#Shape1').val(this.value).change();
+                });
+
+                $('#SlopeSlider2').on('input', function() {
+                    if (doDraw)
+                        $('#Slope2').val(this.value).change();
+                });
+                $('#MaxdegSlider2').on('input', function() {
+                    if (doDraw)
+                        $('#Maxdeg2').val(this.value).change();
+                });
+
+                $('#SlopeSlider3').on('input', function() {
+                    if (doDraw)
+                        $('#Slope3').val(this.value).change();
+                });
+                $('#MaxdegSlider3').on('input', function() {
+                    if (doDraw)
+                        $('#Maxdeg3').val(this.value).change();
+                });
+                $('#ShapeSlider3').on('input', function() {
+                    if (doDraw)
+                        $('#Shape3').val(this.value).change();
+                });
+
+                checkBox = document.getElementById("lock");
+
+                var checkboxCallback = function(){
+                    if(checkBox.checked){
+                        $('#Slope2').hide();
+                        $('#SlopeSlider2').hide();
+                        $('#pitchValue').show().text($('#Slope1').val().toString());
+                        $('#pitchValueSlider').show();
+                        $('#otxNegExpo2').hide();
+                        $('#otxNegExpoSlider2').hide();
+                        $('#otxValue').show().text($('#otxNegExpo1').val().toString());
+                    } else {
+                        $('#Slope2').show().val($('#Slope2').val()).change();
+                        $('#SlopeSlider2').show().val($('#Slope2').val()).change();
+                        $('#pitchValue').hide();
+                        $('#pitchValueSlider').hide();
+                        $('#otxNegExpo2').show().val($('#otxNegExpo1').val()).change();;
+                        $('#otxNegExpoSlider2').show().val($('#otxNegExpo1').val()).change();
+                        $('#otxValue').hide();
+                    }
+                }
+
+                $(checkBox).on('change',function(){
+                    checkboxCallback();
+                    drawChart(0);
+                });
+
+                checkboxCallback();
+
+                //draw
+                $(".input-field").on("change paste enter keyup", function() {
+                    if (doDraw)
+                        drawChart(0);
+                });
+                $(".input-field-tuning").on("change paste enter keyup", function() {
+                    if (doDraw)
+                        drawChart(1);
+                });
+            });
+
+            </script>
+    </head>
+    <body>
+        <h3>Betaflight Rates Tuner</h3>
+        <div>An alternative approach for setting rates in Betaflight.</div>
+        <div id="curve_chart" style="width: 900px; height: 600px; margin-top:-70px; display:inline-block; margin-left: auto; margin-right: auto; vertical-align: top; padding-top: 30px;"></div>
+        <div style="display:inline-block; margin-left: auto; margin-right: auto; vertical-align: top; padding-top: 30px;">
+            <div>Lock Roll/Pitch Slope: <input id="lock" type="checkbox"></div>
+            <h3>ALT TUNING PARAMS</h3>
+                <div class="rateBox">
+                    <div>
+                        <span class="input-title"></span>
+                        <span class="input-title">Slope:</span>
+                        <span class="input-title">Max deg/s:</span>
+                        <span class="input-title">Shape:</span>
+                    </div>
+                    <div>
+                        <span class="input-title">ROLL</span>
+                        <input type="number" id="Slope1"  step="0.01" min="0.00" max="3.15" value="1.00" placeholder='0.00' class="input-field-tuning"/>
+                        <input type="number" id="Maxdeg1" step="1.00" min="0.00" max="3000.00" value="525.00" placeholder='0.00' class="input-field-tuning"/>
+                        <input type="number" id="Shape1"  step="0.01" min="0.00" max="1.00" value="0.00" placeholder='0.00' class="input-field-tuning"/>
+                    </div>
+                    <div>
+                        <span class="input-title"></span>
+                        <input type="range" id="SlopeSlider1"  class="slider" step="0.01" min="0.00" max="3.15" value="1.00" placeholder='0.00'/>
+                        <input type="range" id="MaxdegSlider1" class="slider" step="1.00" min="0.00" max="3000.00" value="525.00" placeholder='0.00'/>
+                        <input type="range" id="ShapeSlider1"  class="slider" step="0.01" min="0.00" max="1.00" value="0.00" placeholder='0.00'/>
+                    </div>
+                </div>
+                <div class="rateBox">
+                    <div>
+                        <span class="input-title"></span>
+                        <span class="input-title">Slope*:</span>
+                        <span class="input-title">Max deg/s:</span>
+                    </div>
+                    <div>
+                        <span class="input-title">PITCH</span>
+                        <span class="input-title" id="pitchValue"></span>
+                        <input type="number" id="Slope2"  step="0.01" min="0.00" max="3.15" value="1.00" placeholder='0.00' class="input-field-tuning"/>
+                        <input type="number" id="Maxdeg2" step="1.00" min="0.00" max="3000.00" value="525.00" placeholder='0.00' class="input-field-tuning"/>
+                        <span class="input-title"></span>
+                    </div>
+                    <div>
+                        <span class="input-title"></span>
+                        <span class="input-title" id="pitchValueSlider"></span>
+                        <input type="range" id="SlopeSlider2"  class="slider" step="0.01" min="0.00" max="3.15" value="1.00" placeholder='0.00'/>
+                        <input type="range" id="MaxdegSlider2" class="slider" step="1.00" min="0.00" max="3000.00" value="525.00" placeholder='0.00'/>
+                        <span class="input-title"></span>
+                    </div>
+                </div>
+                <div class="rateBox">
+                    <div>
+                        <span class="input-title"></span>
+                        <span class="input-title">Slope:</span>
+                        <span class="input-title">Max deg/s:</span>
+                        <span class="input-title">Shape:</span>
+                    </div>
+                    <div>
+                        <span class="input-title">YAW</span>
+                        <input type="number" id="Slope3"  step="0.01" min="0.00" max="3.15" value="1.00" placeholder='0.00' class="input-field-tuning"/>
+                        <input type="number" id="Maxdeg3" step="1.00" min="0.00" max="3000.00" value="525.00" placeholder='0.00' class="input-field-tuning"/>
+                        <input type="number" id="Shape3"  step="0.01" min="0.00" max="1.00" value="0.00" placeholder='0.00' class="input-field-tuning"/>
+                    </div>
+                    <div>
+                        <span class="input-title"></span>
+                        <input type="range" id="SlopeSlider3"  class="slider" step="0.01" min="0.00" max="3.15" value="1.00" placeholder='0.00'/>
+                        <input type="range" id="MaxdegSlider3" class="slider" step="1.00" min="0.00" max="3000.00" value="525.00" placeholder='0.00'/>
+                        <input type="range" id="ShapeSlider3"  class="slider" step="0.01" min="0.00" max="1.00" value="0.00" placeholder='0.00'/>
+                    </div>
+                </div>
+            <h3>CONFIGURATOR PARAMS</h3>
+            <div class="rateBox">
+                <div>
+                    <span class="input-title"></span>
+                    <span class="input-title">RC Rate:</span>
+                    <span class="input-title">Super Rate:</span>
+                    <span class="input-title">RC Expo:</span>
+                    <span class="input-title">OTX Expo:</span>
+                </div>
+                <div>
+                    <span class="input-title">ROLL</span>
+                    <input type="number" id="bfRate1"  step="0.01" min="0.00" max="2.20" value="2.04" placeholder='0.00' class="input-field"/>
+                    <input type="number" id="bfSuper1" step="0.01" min="0.00" max="1.00" value="0.00" placeholder='0.00' class="input-field"/>
+                    <input type="number" id="bfExpo1"  step="0.01" min="0.00" max="1.00" value="0.45" placeholder='0.00' class="input-field"/>
+                    <input type="number" id="otxNegExpo1"  step="0.01" min="-1.00" max="1.00" value="0.00" placeholder='0.00' class="input-field"/>
+                </div>
+                <div>
+                    <span class="input-title"></span>
+                    <input type="range" id="bfRateSlider1"  class="slider" step="0.01" min="0.00" max="2.20" value="2.04" placeholder='0.00'/>
+                    <input type="range" id="bfSuperSlider1" class="slider" step="0.01" min="0.00" max="1.00" value="0.00" placeholder='0.00'/>
+                    <input type="range" id="bfExpoSlider1"  class="slider" step="0.01" min="0.00" max="1.00" value="0.45" placeholder='0.00'/>
+                    <input type="range" id="otxNegExpoSlider1"  class="slider" step="0.01" min="-1.00" max="1.00" value="0.00" placeholder='0.00'/>
+                </div>
+            </div>
+            <div class="rateBox">
+                <div>
+                    <span class="input-title"></span>
+                    <span class="input-title"></span>
+                    <span class="input-title">Super Rate:</span>
+                    <span class="input-title"></span>
+                    <span class="input-title">OTX Expo:</span>
+                </div>
+                <div>
+                    <span class="input-title">PITCH</span>
+                    <span class="input-title"></span>
+                    <input type="number" id="bfSuper2" step="0.01" min="0.00" max="1.00" value="0.00" placeholder='0.00' class="input-field"/>
+                    <span class="input-title"></span>
+                    <input type="number" id="otxNegExpo2"  step="0.01" min="-1.00" max="1.00" value="0.00" placeholder='0.00' class="input-field"/>
+                    <span class="input-title" id="otxValue"></span>
+                </div>
+                <div>
+                    <span class="input-title"></span>
+                    <span class="input-title"></span>
+                    <input type="range" id="bfSuperSlider2" class="slider" step="0.01" min="0.00" max="1.00" value="0.70" placeholder='0.00'/>
+                    <span class="input-title"></span>
+                    <input type="range" id="otxNegExpoSlider2"  class="slider" step="0.01" min="-1.00" max="1.00" value="0.00" placeholder='0.00'/>
+                </div>
+            </div>
+            <div class="rateBox">
+                <div>
+                    <span class="input-title"></span>
+                    <span class="input-title">RC Rate:</span>
+                    <span class="input-title">Super Rate:</span>
+                    <span class="input-title">RC Expo:</span>
+                    <span class="input-title">OTX Expo:</span>
+                </div>
+                <div>
+                    <span class="input-title">YAW</span>
+                    <input type="number" id="bfRate3"  step="0.01" min="0.00" max="2.20" value="2.04" placeholder='0.00' class="input-field"/>
+                    <input type="number" id="bfSuper3" step="0.01" min="0.00" max="1.00" value="0.00" placeholder='0.00' class="input-field"/>
+                    <input type="number" id="bfExpo3"  step="0.01" min="0.00" max="1.00" value="0.61" placeholder='0.00' class="input-field"/>
+                    <input type="number" id="otxNegExpo3"  step="0.01" min="-1.00" max="1.00" value="0.00" placeholder='0.00' class="input-field"/>
+                </div>
+                <div>
+                    <span class="input-title"></span>
+                    <input type="range" id="bfRateSlider3"  class="slider" step="0.01" min="0.00" max="2.20" value="2.04" placeholder='0.00'/>
+                    <input type="range" id="bfSuperSlider3" class="slider" step="0.01" min="0.00" max="1.00" value="0.00" placeholder='0.00'/>
+                    <input type="range" id="bfExpoSlider3"  class="slider" step="0.01" min="0.00" max="1.00" value="0.61" placeholder='0.00'/>
+                    <input type="range" id="otxNegExpoSlider3"  class="slider" step="0.01" min="-1.00" max="1.00" value="0.00" placeholder='0.00'/>
+                </div>
+            </div>
+        </div>
+        <h3>Notes</h3>
+        <div>
+            <span>-- <b>Slope</b> sets the rate-increase at mid-stick. It is equivalent to RC Rate when RC Expo is zero.</span><br>
+            <span>-- <b>Shape</b> determines how the rate curve grows versus stick command.  Shape=0 is equivalent to using zero Super Rate. Shape=1 is equivalent to using zero RC Expo.</span><br>
+            <span>-- <b>OTX Expo</b> refers to the expo curve on an Open TX-based tranmitter.  Most will set it to zero, but it's included here as it can extend rate curve possibilities.</span><br>
+            <span>-- Positive <b>OTX Expo</b> is discouraged due to loss of resolution near mid-stick.</span><br>
+            <span>-- Negative <b>OTX Expo</b> can increase resolution near mid-stick, grow the rate curve faster, and allows Roll & Pitch to have different initial slopes.</span><br>
+            <br><br>
+            <span>* - Giving Pitch and Roll different <b>Slope</b> values requires use of OTX Expo. Check the "Lock Roll/Pitch Slope" box if you would like them to have the same starting-slope.</span><br>
+        </div>
+    </body>
+</html>
