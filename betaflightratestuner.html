@@ -4,6 +4,7 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous"> -->
         <link rel="stylesheet" href="betaflight_rates.css">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous">
 
         <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
@@ -14,7 +15,9 @@
             var checkOptions = [];
 
             var clamp = function(n, minn, maxn) {
-                return Math.max(Math.min(maxn, n), minn);
+                if(isNaN(n))
+                    n=0.5;
+                return Math.max(Math.min(maxn, n), minn)
             }
 
             // BF rate calculation function
@@ -108,8 +111,8 @@
                     //(1 get input value, 2 update local sliders, 3 calc, 4 update calc'd inputs&sliders)
 
                     //Roll.1
-                    Slope1 = clamp(parseFloat($('#Slope1').val(), 10),0,3);
-                    Maxdeg1 = clamp(parseFloat($('#Maxdeg1').val(), 10),0,3000);
+                    Slope1 = clamp(parseFloat($('#Slope1').val(), 10),0,3.16);
+                    Maxdeg1 = clamp(parseFloat($('#Maxdeg1').val(), 10),0,3001);
                     Shape1 = clamp(parseFloat($('#Shape1').val(), 10),0,1);
                     otxNegExpo1 = clamp(parseFloat($('#otxNegExpo1').val(), 10),-1,1);
                     //Roll.2
@@ -119,12 +122,12 @@
                     $('#otxNegExpoSlider1').val(otxNegExpo1).change();
                     //Roll.3,4
                     rc = updateRcRateUnadjusted(otxNegExpo1, Slope1, Maxdeg1, Shape1);
-                     $('#bfRate1').val(adjustRcRate(rc)).change();
-                     $('#bfExpo1').val(updateExpo(rc,otxNegExpo1,Slope1)).change();
-                     $('#bfSuper1').val(updateSuperRate(rc,Maxdeg1)).change();
-                     $('#bfRateSlider1').val(adjustRcRate(rc)).change();
-                     $('#bfExpoSlider1').val(updateExpo(rc,otxNegExpo1,Slope1)).change();
-                     $('#bfSuperSlider1').val(updateSuperRate(rc,Maxdeg1)).change();
+                     $('#bfRate1').val(clamp(adjustRcRate(rc),0,2.18)).change();
+                     $('#bfExpo1').val(clamp(updateExpo(rc,otxNegExpo1,Slope1),-0.01,1)).change();
+                     $('#bfSuper1').val(clamp(updateSuperRate(rc,Maxdeg1),0,1)).change();
+                     $('#bfRateSlider1').val(clamp(adjustRcRate(rc),0,2.18)).change();
+                     $('#bfExpoSlider1').val(clamp(updateExpo(rc,otxNegExpo1,Slope1),-0.01,1)).change();
+                     $('#bfSuperSlider1').val(clamp(updateSuperRate(rc,Maxdeg1),0,1)).change();
 
                     //Pitch.1
                     if(checkBox.checked){
@@ -133,11 +136,11 @@
                         otxNegExpo2 = otxNegExpo1;
                         $('#otxValue').text($('#otxNegExpo1').val().toString());
                     } else {
-                        Slope2 = clamp(parseFloat($('#Slope2').val(), 10),0,3);
+                        Slope2 = clamp(parseFloat($('#Slope2').val(), 10),0,3.16);
                         otxNegExpo2 = clamp(-Slope2/(rc*(1-parseFloat($('#bfExpo1').val(), 10)))/2+0.5,-1,1);
                     }
                     
-                    Maxdeg2 = clamp(parseFloat($('#Maxdeg2').val(), 10),0,3000);
+                    Maxdeg2 = clamp(parseFloat($('#Maxdeg2').val(), 10),0,3001);
                     //Shape2 = clamp((rc-Maxdeg2/200)/(Slope2-Maxdeg2/200),0,1);
                     
                     //Pitch.2
@@ -145,13 +148,13 @@
                     $('#MaxdegSlider2').val(Maxdeg2).change();
                     $('#otxNegExpoSlider2').val(otxNegExpo2).change();
                     //Pitch.3,4
-                    $('#bfSuper2').val(updateSuperRate(rc,Maxdeg2)).change();
-                    $('#bfSuperSlider2').val(updateSuperRate(rc,Maxdeg2)).change();
+                    $('#bfSuper2').val(clamp(updateSuperRate(rc,Maxdeg2),0,1)).change();
+                    $('#bfSuperSlider2').val(clamp(updateSuperRate(rc,Maxdeg2),0,1)).change();
                     $('#otxNegExpo2').val(Math.round(100*otxNegExpo2)/100).change();
 
                     //Yaw.1
-                    Slope3 = clamp(parseFloat($('#Slope3').val(), 10),0,3);
-                    Maxdeg3 = clamp(parseFloat($('#Maxdeg3').val(), 10),0,3000);
+                    Slope3 = clamp(parseFloat($('#Slope3').val(), 10),0,3.16);
+                    Maxdeg3 = clamp(parseFloat($('#Maxdeg3').val(), 10),0,3001);
                     Shape3 = clamp(parseFloat($('#Shape3').val(), 10),0,1);
                     otxNegExpo3 = clamp(parseFloat($('#otxNegExpo3').val(), 10),-1,1);
                     //Yaw.2
@@ -161,17 +164,17 @@
                     $('#otxNegExpoSlider3').val(otxNegExpo3).change();
                     //Yaw.3,4
                     rc = updateRcRateUnadjusted(otxNegExpo3, Slope3, Maxdeg3, Shape3);
-                     $('#bfRate3').val(adjustRcRate(rc)).change();
-                     $('#bfExpo3').val(updateExpo(rc,otxNegExpo3,Slope3)).change();
-                     $('#bfSuper3').val(updateSuperRate(rc,Maxdeg3)).change();
-                     $('#bfRateSlider3').val(adjustRcRate(rc)).change();
-                     $('#bfExpoSlider3').val(updateExpo(rc,otxNegExpo3,Slope3)).change();
-                     $('#bfSuperSlider3').val(updateSuperRate(rc,Maxdeg3)).change();
+                     $('#bfRate3').val(clamp(adjustRcRate(rc),0,2.18)).change();
+                     $('#bfExpo3').val(clamp(updateExpo(rc,otxNegExpo3,Slope3),-0.01,1)).change();
+                     $('#bfSuper3').val(clamp(updateSuperRate(rc,Maxdeg3),0,1)).change();
+                     $('#bfRateSlider3').val(clamp(adjustRcRate(rc),0,2.18)).change();
+                     $('#bfExpoSlider3').val(clamp(updateExpo(rc,otxNegExpo3,Slope3),-0.01,1)).change();
+                     $('#bfSuperSlider3').val(clamp(updateSuperRate(rc,Maxdeg3),0,1)).change();
 
                 }
 
-                bfRate1 = clamp(parseFloat($('#bfRate1').val(), 10),0,2.2);
-                bfExpo1 = clamp(parseFloat($('#bfExpo1').val(), 10),0,1);
+                bfRate1 = clamp(parseFloat($('#bfRate1').val(), 10),0,2.18);
+                bfExpo1 = clamp(parseFloat($('#bfExpo1').val(), 10),-0.01,1);
                 bfSuper1 = clamp(parseFloat($('#bfSuper1').val(), 10),0,1);
                 otxNegExpo1 = clamp(parseFloat($('#otxNegExpo1').val(), 10),-1,1);
 
@@ -183,8 +186,8 @@
                     otxNegExpo2 = clamp(parseFloat($('#otxNegExpo2').val(), 10),-1,1);
                 }
 
-                bfRate3 = clamp(parseFloat($('#bfRate3').val(), 10),0,2.2);
-                bfExpo3 = clamp(parseFloat($('#bfExpo3').val(), 10),0,1);
+                bfRate3 = clamp(parseFloat($('#bfRate3').val(), 10),0,2.18);
+                bfExpo3 = clamp(parseFloat($('#bfExpo3').val(), 10),-0.01,1);
                 bfSuper3 = clamp(parseFloat($('#bfSuper3').val(), 10),0,1);
                 otxNegExpo3 = clamp(parseFloat($('#otxNegExpo3').val(), 10),-1,1);
 
@@ -199,9 +202,9 @@
                     $('#bfSuperSlider1').val(bfSuper1).change();
                     $('#otxNegExpoSlider1').val(otxNegExpo1).change();
                     //Roll.3
-                    rc = clamp(unadjustedRcRate(bfRate1),0,3);
-                    slp=clamp(updateSlope(rc,bfExpo1,otxNegExpo1),0,3);
-                    mxdeg=clamp(updateMaxdeg(rc,bfSuper1),0,3000);
+                    rc = clamp(unadjustedRcRate(bfRate1),0,4);
+                    slp=clamp(updateSlope(rc,bfExpo1,otxNegExpo1),0,3.16);
+                    mxdeg=clamp(updateMaxdeg(rc,bfSuper1),0,3001);
                     shp=clamp(updateShape(rc,otxNegExpo1,slp,mxdeg),0,1);
                     //Roll.4
                     $('#Slope1').val(Math.round(100*slp)/100).change();
@@ -219,8 +222,8 @@
                         $('#otxValue').show().text($('#otxNegExpo1').val().toString());
                     }
                     //Pitch.3
-                    slp=clamp(updateSlope(rc,bfExpo1,otxNegExpo2),0,3);
-                    mxdeg=clamp(updateMaxdeg(rc,bfSuper2),0,3000);
+                    slp=clamp(updateSlope(rc,bfExpo1,otxNegExpo2),0,3.16);
+                    mxdeg=clamp(updateMaxdeg(rc,bfSuper2),0,3001);
                     //shp=updateShape(rc,otxNegExpo2,slp,mxdeg);
                     //Pitch.4
                     $('#Slope2').val(Math.round(100*slp)/100).change();
@@ -238,9 +241,9 @@
                     $('#bfSuperSlider3').val(bfSuper3).change();
                     $('#otxNegExpoSlider3').val(otxNegExpo3).change();
                     //Yaw.3
-                    rc = clamp(unadjustedRcRate(bfRate3),0,3);
-                    slp=clamp(updateSlope(rc,bfExpo3,otxNegExpo3),0,3);
-                    mxdeg=clamp(updateMaxdeg(rc,bfSuper3),0,3000);
+                    rc = clamp(unadjustedRcRate(bfRate3),0,3.16);
+                    slp=clamp(updateSlope(rc,bfExpo3,otxNegExpo3),0,3.16);
+                    mxdeg=clamp(updateMaxdeg(rc,bfSuper3),0,3001);
                     shp=clamp(updateShape(rc,otxNegExpo3,slp,mxdeg),0,1);
                     //Yaw.4
                     $('#Slope3').val(Math.round(100*slp)/100).change();
@@ -493,8 +496,8 @@
             </script>
     </head>
     <body>
-        <h3>Betaflight Rates Tuner</h3>
-        <div>An alternative approach for setting rates in Betaflight.</div>
+        <h3 style="margin-left:5px">Betaflight Rates Tuner</h3>
+        <div style="padding-left:5px">An alternative approach for setting rates in Betaflight.</div>
         <hr>
         <div id="curve_chart" style="width: 900px; height: 600px; margin-top:-100px; display:inline-block; margin-left: auto; margin-right: auto; vertical-align: top; padding-top: 30px;"></div>
         <div style="display:inline-block; margin-left: auto; margin-right: auto; vertical-align: top; padding-top: 30px;">
@@ -572,14 +575,14 @@
                 </div>
                 <div>
                     <span class="input-title">ROLL</span>
-                    <input type="number" id="bfRate1"  step="0.01" min="0.00" max="2.20" value="2.04" placeholder='0.00' class="input-field"/>
+                    <input type="number" id="bfRate1"  step="0.01" min="0.00" max="2.17" value="2.04" placeholder='0.00' class="input-field"/>
                     <input type="number" id="bfSuper1" step="0.01" min="0.00" max="1.00" value="0.00" placeholder='0.00' class="input-field"/>
                     <input type="number" id="bfExpo1"  step="0.01" min="0.00" max="1.00" value="0.45" placeholder='0.00' class="input-field"/>
                     <input type="number" id="otxNegExpo1"  step="0.01" min="-1.00" max="1.00" value="0.00" placeholder='0.00' class="input-field"/>
                 </div>
                 <div>
                     <span class="input-title"></span>
-                    <input type="range" id="bfRateSlider1"  class="slider" step="0.01" min="0.00" max="2.20" value="2.04" placeholder='0.00'/>
+                    <input type="range" id="bfRateSlider1"  class="slider" step="0.01" min="0.00" max="2.17" value="2.04" placeholder='0.00'/>
                     <input type="range" id="bfSuperSlider1" class="slider" step="0.01" min="0.00" max="1.00" value="0.00" placeholder='0.00'/>
                     <input type="range" id="bfExpoSlider1"  class="slider" step="0.01" min="0.00" max="1.00" value="0.45" placeholder='0.00'/>
                     <input type="range" id="otxNegExpoSlider1"  class="slider" step="0.01" min="-1.00" max="1.00" value="0.00" placeholder='0.00'/>
@@ -619,14 +622,14 @@
                 </div>
                 <div>
                     <span class="input-title">YAW</span>
-                    <input type="number" id="bfRate3"  step="0.01" min="0.00" max="2.20" value="2.04" placeholder='0.00' class="input-field"/>
+                    <input type="number" id="bfRate3"  step="0.01" min="0.00" max="2.17" value="2.04" placeholder='0.00' class="input-field"/>
                     <input type="number" id="bfSuper3" step="0.01" min="0.00" max="1.00" value="0.00" placeholder='0.00' class="input-field"/>
                     <input type="number" id="bfExpo3"  step="0.01" min="0.00" max="1.00" value="0.61" placeholder='0.00' class="input-field"/>
                     <input type="number" id="otxNegExpo3"  step="0.01" min="-1.00" max="1.00" value="0.00" placeholder='0.00' class="input-field"/>
                 </div>
                 <div>
                     <span class="input-title"></span>
-                    <input type="range" id="bfRateSlider3"  class="slider" step="0.01" min="0.00" max="2.20" value="2.04" placeholder='0.00'/>
+                    <input type="range" id="bfRateSlider3"  class="slider" step="0.01" min="0.00" max="2.17" value="2.04" placeholder='0.00'/>
                     <input type="range" id="bfSuperSlider3" class="slider" step="0.01" min="0.00" max="1.00" value="0.00" placeholder='0.00'/>
                     <input type="range" id="bfExpoSlider3"  class="slider" step="0.01" min="0.00" max="1.00" value="0.61" placeholder='0.00'/>
                     <input type="range" id="otxNegExpoSlider3"  class="slider" step="0.01" min="-1.00" max="1.00" value="0.00" placeholder='0.00'/>
@@ -642,8 +645,9 @@
             </div>
         </div>
         <hr>
-        <h3>Help</h3>
-        <div style="max-width:900px">
+        <hr>
+        <h3 style="margin-left:5px">Help</h3>
+        <div style="max-width:900px; padding-left:5px; padding-right:5px">
             <ul>
                 <li><b>Slope</b> sets the rate-increase at mid-stick. It is equivalent to RC Rate when RC Expo is zero.</li>
                 <li><b>Shape</b> determines how the rate curve grows versus stick command.  Shape=0 is equivalent to using zero Super Rate. Shape=1 is equivalent to using zero RC Expo.</li>
