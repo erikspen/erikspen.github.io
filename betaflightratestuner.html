@@ -51,8 +51,10 @@
             }
 
             var updateRcRateUnadjusted = function(expo_otx, Slope, Maxdeg, Shape){
+                if (Maxdeg==0)
+                    return 0
                 rcRate = Slope*Shape+(1-Shape)*Maxdeg/200;
-                rcRate = rcRate/(1-2*expo_otx);
+                rcRate = rcRate/((expo_otx<=0)?(1-2*expo_otx):(1-expo_otx));
                 return rcRate
             }
 
@@ -74,19 +76,19 @@
 
             var updateExpo = function(rcRate,expo_otx,Slope){
                 //must be real rcRate
-                expo = 1-Slope/(rcRate*(1-2*expo_otx));
+                expo = 1-Slope/(rcRate*((expo_otx<=0)?(1-2*expo_otx):(1-expo_otx)));
                 return Math.round(100*expo)/100
             }
 
             var updateExpo_otx = function(rcRate,expo,Slope){
                 //must be real rcRate
-                expo_otx = -Slope/(rcRate*(1-expo))/2+0.5;
+                expo_otx = -Slope/(rcRate*(1-expo))/((expo_otx<=0)?2:1)+0.5;
                 return Math.round(100*expo_otx)/100
             }
 
             var updateSlope = function(rcRate,expo,expo_otx){
                 //must be real rcRate
-                Slope = rcRate*(1-expo)*(1-2*expo_otx);
+                Slope = rcRate*(1-expo)*((expo_otx<=0)?(1-2*expo_otx):(1-expo_otx));
                 return Slope
             }
 
@@ -98,7 +100,7 @@
 
             var updateShape = function(rcRate,expo_otx,Slope,Maxdeg){
                 //must be real rcRate
-                Shape = (rcRate*(1-2*expo_otx)-Maxdeg/200)/(Slope-Maxdeg/200);
+                Shape = (rcRate*(1-((expo_otx<=0)?2:1)*expo_otx)-Maxdeg/200)/(Slope-Maxdeg/200);
                 return Shape
             }
 
@@ -114,7 +116,7 @@
                     Slope1 = clamp(parseFloat($('#Slope1').val(), 10),0,3.16);
                     Maxdeg1 = clamp(parseFloat($('#Maxdeg1').val(), 10),0,3001);
                     Shape1 = clamp(parseFloat($('#Shape1').val(), 10),0,1);
-                    otxNegExpo1 = clamp(parseFloat($('#otxNegExpo1').val(), 10),-1,1);
+                    otxNegExpo1 = clamp(parseFloat($('#otxNegExpo1').val(), 10),-1,0.999);
                     //Roll.2
                     $('#SlopeSlider1').val(Slope1).change();
                     $('#MaxdegSlider1').val(Maxdeg1).change();
@@ -137,7 +139,7 @@
                         $('#otxValue').text($('#otxNegExpo1').val().toString());
                     } else {
                         Slope2 = clamp(parseFloat($('#Slope2').val(), 10),0,3.16);
-                        otxNegExpo2 = clamp(-Slope2/(rc*(1-parseFloat($('#bfExpo1').val(), 10)))/2+0.5,-1,1);
+                        otxNegExpo2 = clamp(-Slope2/(rc*(1-parseFloat($('#bfExpo1').val(), 10)))/2+0.5,-1,0.999);
                     }
                     
                     Maxdeg2 = clamp(parseFloat($('#Maxdeg2').val(), 10),0,3001);
@@ -156,7 +158,7 @@
                     Slope3 = clamp(parseFloat($('#Slope3').val(), 10),0,3.16);
                     Maxdeg3 = clamp(parseFloat($('#Maxdeg3').val(), 10),0,3001);
                     Shape3 = clamp(parseFloat($('#Shape3').val(), 10),0,1);
-                    otxNegExpo3 = clamp(parseFloat($('#otxNegExpo3').val(), 10),-1,1);
+                    otxNegExpo3 = clamp(parseFloat($('#otxNegExpo3').val(), 10),-1,0.999);
                     //Yaw.2
                     $('#SlopeSlider3').val(Slope3).change();
                     $('#MaxdegSlider3').val(Maxdeg3).change();
@@ -176,20 +178,20 @@
                 bfRate1 = clamp(parseFloat($('#bfRate1').val(), 10),0,2.18);
                 bfExpo1 = clamp(parseFloat($('#bfExpo1').val(), 10),-0.01,1);
                 bfSuper1 = clamp(parseFloat($('#bfSuper1').val(), 10),0,1);
-                otxNegExpo1 = clamp(parseFloat($('#otxNegExpo1').val(), 10),-1,1);
+                otxNegExpo1 = clamp(parseFloat($('#otxNegExpo1').val(), 10),-1,0.999);
 
                 bfSuper2 = clamp(parseFloat($('#bfSuper2').val(), 10),0,1);
                 if(checkBox.checked){
                     otxNegExpo2 = otxNegExpo1;
                     $('#otxValue').text($('#otxNegExpo1').val().toString());
                 } else {
-                    otxNegExpo2 = clamp(parseFloat($('#otxNegExpo2').val(), 10),-1,1);
+                    otxNegExpo2 = clamp(parseFloat($('#otxNegExpo2').val(), 10),-1,0.999);
                 }
 
                 bfRate3 = clamp(parseFloat($('#bfRate3').val(), 10),0,2.18);
                 bfExpo3 = clamp(parseFloat($('#bfExpo3').val(), 10),-0.01,1);
                 bfSuper3 = clamp(parseFloat($('#bfSuper3').val(), 10),0,1);
-                otxNegExpo3 = clamp(parseFloat($('#otxNegExpo3').val(), 10),-1,1);
+                otxNegExpo3 = clamp(parseFloat($('#otxNegExpo3').val(), 10),-1,0.999);
 
                 if (update==0 || update==undefined){
                     //update configurator inputs/sliders
@@ -578,14 +580,14 @@
                     <input type="number" id="bfRate1"  step="0.01" min="0.00" max="2.17" value="2.04" placeholder='0.00' class="input-field"/>
                     <input type="number" id="bfSuper1" step="0.01" min="0.00" max="1.00" value="0.00" placeholder='0.00' class="input-field"/>
                     <input type="number" id="bfExpo1"  step="0.01" min="0.00" max="1.00" value="0.45" placeholder='0.00' class="input-field"/>
-                    <input type="number" id="otxNegExpo1"  step="0.01" min="-1.00" max="1.00" value="0.00" placeholder='0.00' class="input-field"/>
+                    <input type="number" id="otxNegExpo1"  step="0.01" min="-1.00" max="0.99" value="0.00" placeholder='0.00' class="input-field"/>
                 </div>
                 <div>
                     <span class="input-title"></span>
                     <input type="range" id="bfRateSlider1"  class="slider" step="0.01" min="0.00" max="2.17" value="2.04" placeholder='0.00'/>
                     <input type="range" id="bfSuperSlider1" class="slider" step="0.01" min="0.00" max="1.00" value="0.00" placeholder='0.00'/>
                     <input type="range" id="bfExpoSlider1"  class="slider" step="0.01" min="0.00" max="1.00" value="0.45" placeholder='0.00'/>
-                    <input type="range" id="otxNegExpoSlider1"  class="slider" step="0.01" min="-1.00" max="1.00" value="0.00" placeholder='0.00'/>
+                    <input type="range" id="otxNegExpoSlider1"  class="slider" step="0.01" min="-1.00" max="0.99" value="0.00" placeholder='0.00'/>
                 </div>
             </div>
             <div class="rateBox">
@@ -601,7 +603,7 @@
                     <span class="input-title"></span>
                     <input type="number" id="bfSuper2" step="0.01" min="0.00" max="1.00" value="0.00" placeholder='0.00' class="input-field"/>
                     <span class="input-title"></span>
-                    <input type="number" id="otxNegExpo2"  step="0.01" min="-1.00" max="1.00" value="0.00" placeholder='0.00' class="input-field"/>
+                    <input type="number" id="otxNegExpo2"  step="0.01" min="-1.00" max="0.99" value="0.00" placeholder='0.00' class="input-field"/>
                     <span class="input-title" id="otxValue"></span>
                 </div>
                 <div>
@@ -609,7 +611,7 @@
                     <span class="input-title"></span>
                     <input type="range" id="bfSuperSlider2" class="slider" step="0.01" min="0.00" max="1.00" value="0.70" placeholder='0.00'/>
                     <span class="input-title"></span>
-                    <input type="range" id="otxNegExpoSlider2"  class="slider" step="0.01" min="-1.00" max="1.00" value="0.00" placeholder='0.00'/>
+                    <input type="range" id="otxNegExpoSlider2"  class="slider" step="0.01" min="-1.00" max="0.99" value="0.00" placeholder='0.00'/>
                 </div>
             </div>
             <div class="rateBox">
@@ -625,14 +627,14 @@
                     <input type="number" id="bfRate3"  step="0.01" min="0.00" max="2.17" value="2.04" placeholder='0.00' class="input-field"/>
                     <input type="number" id="bfSuper3" step="0.01" min="0.00" max="1.00" value="0.00" placeholder='0.00' class="input-field"/>
                     <input type="number" id="bfExpo3"  step="0.01" min="0.00" max="1.00" value="0.61" placeholder='0.00' class="input-field"/>
-                    <input type="number" id="otxNegExpo3"  step="0.01" min="-1.00" max="1.00" value="0.00" placeholder='0.00' class="input-field"/>
+                    <input type="number" id="otxNegExpo3"  step="0.01" min="-1.00" max="0.99" value="0.00" placeholder='0.00' class="input-field"/>
                 </div>
                 <div>
                     <span class="input-title"></span>
                     <input type="range" id="bfRateSlider3"  class="slider" step="0.01" min="0.00" max="2.17" value="2.04" placeholder='0.00'/>
                     <input type="range" id="bfSuperSlider3" class="slider" step="0.01" min="0.00" max="1.00" value="0.00" placeholder='0.00'/>
                     <input type="range" id="bfExpoSlider3"  class="slider" step="0.01" min="0.00" max="1.00" value="0.61" placeholder='0.00'/>
-                    <input type="range" id="otxNegExpoSlider3"  class="slider" step="0.01" min="-1.00" max="1.00" value="0.00" placeholder='0.00'/>
+                    <input type="range" id="otxNegExpoSlider3"  class="slider" step="0.01" min="-1.00" max="0.99" value="0.00" placeholder='0.00'/>
                 </div>
             </div>
         </div>
