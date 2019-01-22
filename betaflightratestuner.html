@@ -139,7 +139,9 @@
                         $('#otxValue').text($('#otxNegExpo1').val().toString());
                     } else {
                         Slope2 = clamp(parseFloat($('#Slope2').val(), 10),0,3.16);
-                        otxNegExpo2 = clamp(-Slope2/(rc*(1-parseFloat($('#bfExpo1').val(), 10)))/((expo_otx<=0)?2:1)+0.5,-1,0.999);
+                        otxNegExpo2 = clamp(-Slope2/(rc*(1-parseFloat($('#bfExpo1').val(), 10)))/2+0.5,-1,0.999);
+                        if(otxNegExpo2>0)
+                            otxNegExpo2=2*otxNegExpo2;
                     }
                     
                     Maxdeg2 = clamp(parseFloat($('#Maxdeg2').val(), 10),0,3001);
