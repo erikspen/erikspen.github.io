@@ -495,6 +495,7 @@
     <body>
         <h3>Betaflight Rates Tuner</h3>
         <div>An alternative approach for setting rates in Betaflight.</div>
+        <hr>
         <div id="curve_chart" style="width: 900px; height: 600px; margin-top:-100px; display:inline-block; margin-left: auto; margin-right: auto; vertical-align: top; padding-top: 30px;"></div>
         <div style="display:inline-block; margin-left: auto; margin-right: auto; vertical-align: top; padding-top: 30px;">
             <div>Lock Roll/Pitch Slope: <input id="lock" type="checkbox"></div>
@@ -640,7 +641,8 @@
                 <span>Avg. Slope<input id="avg" type="checkbox"></span>
             </div>
         </div>
-        <h3>Notes</h3>
+        <hr>
+        <h3>Help</h3>
         <div style="max-width:900px">
             <ul>
                 <li><b>Slope</b> sets the rate-increase at mid-stick. It is equivalent to RC Rate when RC Expo is zero.</li>
@@ -649,8 +651,7 @@
                 <li>Positive <b>OTX Expo</b> is discouraged due to loss of resolution near mid-stick.</li>
                 <li>Negative <b>OTX Expo</b> can increase resolution near mid-stick, grow the rate curve faster, and allows Roll & Pitch to have different initial slopes.</li>
                 <li>Checking the <b>Derivative</b> box plots the change in <b>Slope</b> versus stick position. Higher values will feel less controllable.</li>
-                <li>Checking the <b>Avg. Slope</b> box plots the average <b>Slope</b> versus stick position. For a throw of the sticks, higher values will accumulate greater change in angle.
-                    So, for example, as <b>Shape=0</b> accumulates less average slope than <b>Shape=1</b>, a higher <b>Slope</b> is required to give the same "throw"/"feel" when using <b>Shape=0</b>.</li>
+                <li>Checking the <b>Avg. Slope</b> box plots the average <b>Slope</b> versus stick position. Sometimes useful for fast-growing curves, when initial slope isn't representative.</li>
             </ul>
             <span>* - Giving Pitch and Roll different <b>Slope</b> values requires use of OTX Expo. Check the "<b>Lock Roll/Pitch Slope</b>" box if you would like them to have the same starting-slope.</span><br>
         </div>
