@@ -490,6 +490,47 @@
                     if (doDraw)
                         drawChart(1);
                 });
+
+                $('select').on('change', function() {
+                    doDraw=false;
+                    if(this.value=='2'){
+                        $('#bfRate1').val(0.8).change();
+                        $('#bfExpo1').val(0).change();
+                        $('#bfSuper1').val(0.63).change();
+                        $('#otxNegExpo1').val(0).change();
+                        $('#bfSuper2').val(0.63).change();
+                        $('#otxNegExpo2').val(0).change();
+                        $('#bfRate3').val(0.6).change();
+                        $('#bfExpo3').val(0).change();
+                        $('#bfSuper3').val(0.5).change();
+                        $('#otxNegExpo3').val(0).change();
+                    } else if(this.value=='1'){
+                        $('#bfRate1').val(2.04).change();
+                        $('#bfExpo1').val(0.45).change();
+                        $('#bfSuper1').val(0).change();
+                        $('#otxNegExpo1').val(0).change();
+                        $('#bfSuper2').val(0).change();
+                        $('#otxNegExpo2').val(0).change();
+                        $('#bfRate3').val(2.04).change();
+                        $('#bfExpo3').val(0.61).change();
+                        $('#bfSuper3').val(0).change();
+                        $('#otxNegExpo3').val(0).change();
+                    } else if(this.value=='3'){
+                        checkBox.checked=false;
+                        $('#bfRate1').val(2.01).change();
+                        $('#bfExpo1').val(0.46).change();
+                        $('#bfSuper1').val(0.17).change();
+                        $('#otxNegExpo1').val(-0.1).change();
+                        $('#bfSuper2').val(0.17).change();
+                        $('#otxNegExpo2').val(0).change();
+                        $('#bfRate3').val(0.56).change();
+                        $('#bfExpo3').val(0.4).change();
+                        $('#bfSuper3').val(0.75).change();
+                        $('#otxNegExpo3').val(-0.54).change();
+                    }
+                    doDraw=true;
+                    drawChart();
+                });
             });
 
             </script>
@@ -508,7 +549,7 @@
                 <span>Integral<input id="avg" type="checkbox"></span>
             </div>
         </div>
-        <div style="display:inline-block; margin-left: auto; margin-right: auto; vertical-align: top; padding-top: 30px;">
+        <div style="max-width:900px; display:inline-block; margin-left: auto; margin-right: auto; vertical-align: top; padding-top: 30px;">
             <div>Lock Roll/Pitch Slope: <input id="lock" type="checkbox"></div>
             <h3>ALT TUNING PARAMS</h3>
                 <div class="rateBox">
@@ -646,18 +687,28 @@
         </div>
         <hr>
         <hr>
-        <h3 style="margin-left:5px">Help</h3>
-        <div style="max-width:900px; padding-left:5px; padding-right:5px">
+        <div style="max-width:900px; display:inline-block; margin-left: auto; margin-right: auto; vertical-align: top; padding-top: 30px; padding-left:5px; padding-right:5px">
+            <h3 style="margin-left:5px">Help</h3>
             <ul>
-                <li><b>Slope</b> sets the rate-increase at mid-stick. It is equivalent to RC Rate when RC Expo is zero.</li>
+                <li><b>Slope</b> sets the rate-increase at mid-stick, affecting precision. It is equivalent to RC Rate when RC Expo is zero.</li>
                 <li><b>Shape</b> determines how the rate curve grows versus stick command.  Shape=0 is equivalent to using zero Super Rate. Shape=1 is equivalent to using zero RC Expo.</li>
                 <li><b>OTX Expo</b> refers to the expo curve on an Open TX-based tranmitter.  Most will set it to zero, but it's included here as it can extend rate curve possibilities.</li>
                 <li>Positive <b>OTX Expo</b> is discouraged due to loss of resolution near mid-stick.</li>
                 <li>Negative <b>OTX Expo</b> can increase resolution near mid-stick, grow the rate curve faster, and allows Roll & Pitch to have different initial slopes.</li>
-                <li>Checking the <b>Derivative</b>-box plots the change in <b>Slope</b> versus stick position. Higher values will feel less controllable.</li>
+                <li>Checking the <b>Derivative</b>-box plots the change in <b>Slope</b> versus stick position. Higher values or knees in the curve will feel less controllable. Racers using the full range of ROLL will want to keep derivative under ~6.0.</li>
                 <li>Checking the <b>Integral</b>-box plots for the integral of rates: a common framework for comparing "feel" of small stick-throws (e.g., can explain how a larger <b>Slope</b> for <b>Shape=0</b> feels the same as a smaller <b>Slope</b> for <b>Shape=1</b>)</li>
             </ul>
             <span>* - Giving Pitch and Roll different <b>Slope</b> values requires use of OTX Expo. Check the "<b>Lock Roll/Pitch Slope</b>" box if you would like them to have the same starting-slope.</span><br>
         </div>
+        <div style="max-width:900px; display:inline-block; margin-left: auto; margin-right: auto; vertical-align: top; padding-top: 30px; padding-left:5px; padding-right:5px">
+            <h3 style="margin-left:5px">Load Example Rates</h3>
+            <select>
+                <option value="0">--Select a pilot--</option>
+                <option value="1">(Racing) Holdox</option>
+                <option value="2">(Racing) SFPV</option>
+                <option value="3">(Racing) Example negative expo</option>
+            </select> 
+        </div>
+    </body>
     </body>
 </html>
