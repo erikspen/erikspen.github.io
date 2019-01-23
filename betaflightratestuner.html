@@ -295,24 +295,19 @@
                 } else if (checkOptions[3].checked) {
                     //avg slope
                     var avg_sum=[0, 0, 0];
-                    var n=1;
-                    for (var i = 0; i <= stickEnd; i+=stickIter) {
+                    for (var i = 0; i <= stickEnd/2; i+=stickIter) {
                         avg_sum[0]=avg_sum[0]
-                            +(bfcalc(expo_otx_calc(i+stickIter,otxNegExpo1), bfRate1, bfExpo1, bfSuper1)-
-                              bfcalc(expo_otx_calc(i,otxNegExpo1), bfRate1, bfExpo1, bfSuper1))/stickIter/200;
+                            +(bfcalc(expo_otx_calc(i,otxNegExpo1), bfRate1, bfExpo1, bfSuper1))*stickIter;
                         avg_sum[1]=avg_sum[1]
-                            +(bfcalc(expo_otx_calc(i+stickIter,otxNegExpo2), bfRate1, bfExpo1, bfSuper2)-
-                              bfcalc(expo_otx_calc(i,otxNegExpo2), bfRate1, bfExpo1, bfSuper2))/stickIter/200;
+                            +(bfcalc(expo_otx_calc(i,otxNegExpo2), bfRate1, bfExpo1, bfSuper2))*stickIter;
                         avg_sum[2]=avg_sum[2]
-                            +(bfcalc(expo_otx_calc(i+stickIter,otxNegExpo3), bfRate3, bfExpo3, bfSuper3)-
-                              bfcalc(expo_otx_calc(i,otxNegExpo3), bfRate3, bfExpo3, bfSuper3))/stickIter/200;
+                            +(bfcalc(expo_otx_calc(i,otxNegExpo3), bfRate3, bfExpo3, bfSuper3))*stickIter;
                         data.addRow([
                             i,
-                            avg_sum[0]/n,
-                            avg_sum[1]/n,
-                            avg_sum[2]/n
+                            (avg_sum[0]/(i+1)**2),
+                            (avg_sum[1]/(i+1)**2),
+                            (avg_sum[2]/(i+1)**2)
                         ]);
-                        n=n+1;
                     }
                 } else {
                     for (var i = 0; i <= stickEnd; i+=stickIter) {
@@ -503,7 +498,16 @@
         <h3 style="margin-left:5px">Betaflight Rates Tuner</h3>
         <div style="padding-left:5px">An alternative approach for setting rates in Betaflight.</div>
         <hr>
-        <div id="curve_chart" style="width: 900px; height: 600px; margin-top:-100px; display:inline-block; margin-left: auto; margin-right: auto; vertical-align: top; padding-top: 30px;"></div>
+        
+        <div style="max-width:900px; display:inline-block; vertical-align: top">
+            <div id="curve_chart" style="width: 900px; height: 600px; margin-top:-100px"></div>
+            <div style="text-align:center; padding-top:20px">
+                <span>Zoom 0%-25%<input id="zoom25" type="checkbox"></span>
+                <span>Zoom 0%-50%<input id="zoom50" type="checkbox"></span>
+                <span>Derivative<input id="deriv" type="checkbox"></span>
+                <span>Integral<input id="avg" type="checkbox"></span>
+            </div>
+        </div>
         <div style="display:inline-block; margin-left: auto; margin-right: auto; vertical-align: top; padding-top: 30px;">
             <div>Lock Roll/Pitch Slope: <input id="lock" type="checkbox"></div>
             <h3>ALT TUNING PARAMS</h3>
@@ -580,14 +584,14 @@
                 <div>
                     <span class="input-title">ROLL</span>
                     <input type="number" id="bfRate1"  step="0.01" min="0.00" max="2.17" value="2.04" placeholder='0.00' class="input-field"/>
-                    <input type="number" id="bfSuper1" step="0.01" min="0.00" max="1.00" value="0.00" placeholder='0.00' class="input-field"/>
+                    <input type="number" id="bfSuper1" step="0.01" min="0.00" max="0.99" value="0.00" placeholder='0.00' class="input-field"/>
                     <input type="number" id="bfExpo1"  step="0.01" min="0.00" max="1.00" value="0.45" placeholder='0.00' class="input-field"/>
                     <input type="number" id="otxNegExpo1"  step="0.01" min="-1.00" max="0.99" value="0.00" placeholder='0.00' class="input-field"/>
                 </div>
                 <div>
                     <span class="input-title"></span>
                     <input type="range" id="bfRateSlider1"  class="slider" step="0.01" min="0.00" max="2.17" value="2.04" placeholder='0.00'/>
-                    <input type="range" id="bfSuperSlider1" class="slider" step="0.01" min="0.00" max="1.00" value="0.00" placeholder='0.00'/>
+                    <input type="range" id="bfSuperSlider1" class="slider" step="0.01" min="0.00" max="0.99" value="0.00" placeholder='0.00'/>
                     <input type="range" id="bfExpoSlider1"  class="slider" step="0.01" min="0.00" max="1.00" value="0.45" placeholder='0.00'/>
                     <input type="range" id="otxNegExpoSlider1"  class="slider" step="0.01" min="-1.00" max="0.99" value="0.00" placeholder='0.00'/>
                 </div>
@@ -603,7 +607,7 @@
                 <div>
                     <span class="input-title">PITCH</span>
                     <span class="input-title"></span>
-                    <input type="number" id="bfSuper2" step="0.01" min="0.00" max="1.00" value="0.00" placeholder='0.00' class="input-field"/>
+                    <input type="number" id="bfSuper2" step="0.01" min="0.00" max="0.99" value="0.00" placeholder='0.00' class="input-field"/>
                     <span class="input-title"></span>
                     <input type="number" id="otxNegExpo2"  step="0.01" min="-1.00" max="0.99" value="0.00" placeholder='0.00' class="input-field"/>
                     <span class="input-title" id="otxValue"></span>
@@ -611,7 +615,7 @@
                 <div>
                     <span class="input-title"></span>
                     <span class="input-title"></span>
-                    <input type="range" id="bfSuperSlider2" class="slider" step="0.01" min="0.00" max="1.00" value="0.70" placeholder='0.00'/>
+                    <input type="range" id="bfSuperSlider2" class="slider" step="0.01" min="0.00" max="0.99" value="0.70" placeholder='0.00'/>
                     <span class="input-title"></span>
                     <input type="range" id="otxNegExpoSlider2"  class="slider" step="0.01" min="-1.00" max="0.99" value="0.00" placeholder='0.00'/>
                 </div>
@@ -627,25 +631,17 @@
                 <div>
                     <span class="input-title">YAW</span>
                     <input type="number" id="bfRate3"  step="0.01" min="0.00" max="2.17" value="2.04" placeholder='0.00' class="input-field"/>
-                    <input type="number" id="bfSuper3" step="0.01" min="0.00" max="1.00" value="0.00" placeholder='0.00' class="input-field"/>
+                    <input type="number" id="bfSuper3" step="0.01" min="0.00" max="0.99" value="0.00" placeholder='0.00' class="input-field"/>
                     <input type="number" id="bfExpo3"  step="0.01" min="0.00" max="1.00" value="0.61" placeholder='0.00' class="input-field"/>
                     <input type="number" id="otxNegExpo3"  step="0.01" min="-1.00" max="0.99" value="0.00" placeholder='0.00' class="input-field"/>
                 </div>
                 <div>
                     <span class="input-title"></span>
                     <input type="range" id="bfRateSlider3"  class="slider" step="0.01" min="0.00" max="2.17" value="2.04" placeholder='0.00'/>
-                    <input type="range" id="bfSuperSlider3" class="slider" step="0.01" min="0.00" max="1.00" value="0.00" placeholder='0.00'/>
+                    <input type="range" id="bfSuperSlider3" class="slider" step="0.01" min="0.00" max="0.99" value="0.00" placeholder='0.00'/>
                     <input type="range" id="bfExpoSlider3"  class="slider" step="0.01" min="0.00" max="1.00" value="0.61" placeholder='0.00'/>
                     <input type="range" id="otxNegExpoSlider3"  class="slider" step="0.01" min="-1.00" max="0.99" value="0.00" placeholder='0.00'/>
                 </div>
-            </div>
-        </div>
-        <div style="max-width:900px">
-            <div style="margin-left:auto; margin-right:auto; text-align:center; padding-top:20px">
-                <span>Zoom 0%-25%<input id="zoom25" type="checkbox"></span>
-                <span>Zoom 0%-50%<input id="zoom50" type="checkbox"></span>
-                <span>Derivative<input id="deriv" type="checkbox"></span>
-                <span>Avg. Slope<input id="avg" type="checkbox"></span>
             </div>
         </div>
         <hr>
@@ -658,8 +654,8 @@
                 <li><b>OTX Expo</b> refers to the expo curve on an Open TX-based tranmitter.  Most will set it to zero, but it's included here as it can extend rate curve possibilities.</li>
                 <li>Positive <b>OTX Expo</b> is discouraged due to loss of resolution near mid-stick.</li>
                 <li>Negative <b>OTX Expo</b> can increase resolution near mid-stick, grow the rate curve faster, and allows Roll & Pitch to have different initial slopes.</li>
-                <li>Checking the <b>Derivative</b> box plots the change in <b>Slope</b> versus stick position. Higher values will feel less controllable.</li>
-                <li>Checking the <b>Avg. Slope</b> box plots the average <b>Slope</b> versus stick position. Sometimes useful for fast-growing curves, when initial slope isn't representative.</li>
+                <li>Checking the <b>Derivative</b>-box plots the change in <b>Slope</b> versus stick position. Higher values will feel less controllable.</li>
+                <li>Checking the <b>Integral</b>-box plots for the integral of rates: a common framework for comparing "feel" of small stick-throws (e.g., can explain how a larger <b>Slope</b> for <b>Shape=0</b> feels the same as a smaller <b>Slope</b> for <b>Shape=1</b>)</li>
             </ul>
             <span>* - Giving Pitch and Roll different <b>Slope</b> values requires use of OTX Expo. Check the "<b>Lock Roll/Pitch Slope</b>" box if you would like them to have the same starting-slope.</span><br>
         </div>
