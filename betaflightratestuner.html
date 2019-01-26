@@ -53,8 +53,15 @@
             var updateRcRateUnadjusted = function(expo_otx, Slope, Maxdeg, Shape){
                 if (Maxdeg==0)
                     return 0
-                rcRate = Slope*Shape+(1-Shape)*Maxdeg/200;
-                rcRate = rcRate/((expo_otx<=0)?(1-2*expo_otx):(1-expo_otx));
+                kotx=(expo_otx<=0)?(1-2*expo_otx):(1-expo_otx);
+                if(kotx>1){
+                    minRcRate=Slope/kotx;
+                    maxRcRate=Maxdeg/200;
+                } else {
+                    minRcRate=Slope;
+                    maxRcRate=Maxdeg/200/kotx;
+                }   
+                rcRate = minRcRate*Shape+(1-Shape)*maxRcRate;
                 return rcRate
             }
 
@@ -76,19 +83,22 @@
 
             var updateExpo = function(rcRate,expo_otx,Slope){
                 //must be real rcRate
-                expo = 1-Slope/(rcRate*((expo_otx<=0)?(1-2*expo_otx):(1-expo_otx)));
+                kotx=(expo_otx<=0)?(1-2*expo_otx):(1-expo_otx);
+                expo = 1-Slope/(rcRate*kotx);
                 return Math.round(100*expo)/100
             }
 
             var updateExpo_otx = function(rcRate,expo,Slope){
                 //must be real rcRate
-                expo_otx = -Slope/(rcRate*(1-expo))/((expo_otx<=0)?2:1)+0.5;
+                expo_otx = 1-Slope/(rcRate*(1-expo));
+                expo_otx = (expo_otx>0)?(expo_otx):(0.5*expo_otx);
                 return Math.round(100*expo_otx)/100
             }
 
             var updateSlope = function(rcRate,expo,expo_otx){
                 //must be real rcRate
-                Slope = rcRate*(1-expo)*((expo_otx<=0)?(1-2*expo_otx):(1-expo_otx));
+                kotx=(expo_otx<=0)?(1-2*expo_otx):(1-expo_otx);
+                Slope = rcRate*(1-expo)*kotx;
                 return Slope
             }
 
@@ -100,7 +110,15 @@
 
             var updateShape = function(rcRate,expo_otx,Slope,Maxdeg){
                 //must be real rcRate
-                Shape = (rcRate*(1-((expo_otx<=0)?2:1)*expo_otx)-Maxdeg/200)/(Slope-Maxdeg/200);
+                kotx=(expo_otx<=0)?(1-2*expo_otx):(1-expo_otx);
+                if(kotx>1){
+                    minRcRate=Slope/kotx;
+                    maxRcRate=Maxdeg/200;
+                } else {
+                    minRcRate=Slope;
+                    maxRcRate=Maxdeg/200/kotx;
+                }
+                Shape =(rcRate-maxRcRate)/(minRcRate-maxRcRate);
                 return Shape
             }
 
@@ -211,9 +229,9 @@
                     mxdeg=clamp(updateMaxdeg(rc,bfSuper1),0,3001);
                     shp=clamp(updateShape(rc,otxNegExpo1,slp,mxdeg),0,1);
                     //Roll.4
-                    $('#Slope1').val(Math.round(100*slp)/100).change();
+                    $('#Slope1').val(Math.round(200*slp)/200).change();
                     $('#Maxdeg1').val(Math.round(mxdeg)).change();
-                    $('#Shape1').val(Math.round(100*shp)/100).change();
+                    $('#Shape1').val(Math.round(1000*shp)/1000).change();
                     $('#SlopeSlider1').val(slp).change();
                     $('#MaxdegSlider1').val(mxdeg).change();
                     $('#ShapeSlider1').val(shp).change();
@@ -230,7 +248,7 @@
                     mxdeg=clamp(updateMaxdeg(rc,bfSuper2),0,3001);
                     //shp=updateShape(rc,otxNegExpo2,slp,mxdeg);
                     //Pitch.4
-                    $('#Slope2').val(Math.round(100*slp)/100).change();
+                    $('#Slope2').val(Math.round(200*slp)/200).change();
                     if(checkBox.checked){
                         $('#pitchValue').show().text($('#Slope2').val().toString());
                     }
@@ -250,9 +268,9 @@
                     mxdeg=clamp(updateMaxdeg(rc,bfSuper3),0,3001);
                     shp=clamp(updateShape(rc,otxNegExpo3,slp,mxdeg),0,1);
                     //Yaw.4
-                    $('#Slope3').val(Math.round(100*slp)/100).change();
+                    $('#Slope3').val(Math.round(200*slp)/200).change();
                     $('#Maxdeg3').val(Math.round(mxdeg)).change();
-                    $('#Shape3').val(Math.round(100*shp)/100).change();
+                    $('#Shape3').val(Math.round(1000*shp)/1000).change();
                     $('#SlopeSlider3').val(slp).change();
                     $('#MaxdegSlider3').val(mxdeg).change();
                     $('#ShapeSlider3').val(shp).change();
@@ -347,6 +365,18 @@
                 chart.draw(data, options);
 
                 doDraw = true;
+            }
+
+            var showHelp = function(){
+                $('#help').show();
+                $('#showHelp').hide();
+                $('#hideHelp').show();
+            }
+
+            var hideHelp = function(){
+                $('#help').hide();
+                $('#showHelp').show();
+                $('#hideHelp').hide();
             }
 
             $( document ).ready(function() {
@@ -523,11 +553,11 @@
                     } else if(this.value=='3'){
                         checkBox.checked=false;
                         checkboxCallback();
-                        $('#bfRate1').val(2.01).change();
-                        $('#bfExpo1').val(0.45).change();
-                        $('#bfSuper1').val(0.17).change();
+                        $('#bfRate1').val(2.00).change();
+                        $('#bfExpo1').val(0.51).change();
+                        $('#bfSuper1').val(0.08).change();
                         $('#otxNegExpo1').val(-0.1).change();
-                        $('#bfSuper2').val(0.11).change();
+                        $('#bfSuper2').val(0.00).change();
                         $('#otxNegExpo2').val(0).change();
                         $('#bfRate3').val(0.50).change();
                         $('#bfExpo3').val(0.29).change();
@@ -542,20 +572,20 @@
             </script>
     </head>
     <body>
-        <h3 style="margin-left:5px">Betaflight Rates Tuner</h3>
-        <div style="padding-left:5px">An alternative approach for setting rates in Betaflight.</div>
+        <h3 style="margin-left:10px">Betaflight Rates Tuner</h3>
+        <div style="padding-left:10px">An alternative approach for setting rates in Betaflight.</div>
         <hr>
         
         <div style="max-width:900px; display:inline-block; vertical-align: top">
-            <div id="curve_chart" style="width: 900px; height: 600px; margin-top:-100px"></div>
-            <div style="text-align:center; padding-top:20px">
+            <div id="curve_chart" style="width: 900px; height: 600px; margin-top:-50px"></div>
+            <div style="text-align:center; padding-top:50px">
                 <span>Zoom 0%-25%<input id="zoom25" type="checkbox"></span>
                 <span>Zoom 0%-50%<input id="zoom50" type="checkbox"></span>
                 <span>Derivative<input id="deriv" type="checkbox"></span>
                 <span>Integral<input id="avg" type="checkbox"></span>
             </div>
         </div>
-        <div style="max-width:900px; display:inline-block; margin-left: auto; margin-right: auto; vertical-align: top; padding-top: 30px;">
+        <div style="max-width:900px; display:inline-block; margin-left: auto; margin-right: auto; vertical-align: top; padding-top: 20px; padding-left:20px">
             <div>Lock Roll/Pitch Slope: <input id="lock" type="checkbox"></div>
             <h3>ALT TUNING PARAMS</h3>
                 <div class="rateBox">
@@ -567,15 +597,15 @@
                     </div>
                     <div>
                         <span class="input-title">ROLL</span>
-                        <input type="number" id="Slope1"  step="0.01" min="0.00" max="3.15" value="1.00" placeholder='0.00' class="input-field-tuning"/>
+                        <input type="number" id="Slope1"  step="0.005" min="0.00" max="3.15" value="1.00" placeholder='0.00' class="input-field-tuning"/>
                         <input type="number" id="Maxdeg1" step="1.00" min="0.00" max="3000.00" value="525.00" placeholder='0.00' class="input-field-tuning"/>
-                        <input type="number" id="Shape1"  step="0.01" min="0.00" max="1.00" value="0.00" placeholder='0.00' class="input-field-tuning"/>
+                        <input type="number" id="Shape1"  step="0.001" min="0.00" max="1.00" value="0.00" placeholder='0.00' class="input-field-tuning"/>
                     </div>
                     <div>
                         <span class="input-title"></span>
-                        <input type="range" id="SlopeSlider1"  class="slider" step="0.01" min="0.00" max="3.15" value="1.00" placeholder='0.00'/>
+                        <input type="range" id="SlopeSlider1"  class="slider" step="0.005" min="0.00" max="3.15" value="1.00" placeholder='0.00'/>
                         <input type="range" id="MaxdegSlider1" class="slider" step="1.00" min="0.00" max="3000.00" value="525.00" placeholder='0.00'/>
-                        <input type="range" id="ShapeSlider1"  class="slider" step="0.01" min="0.00" max="1.00" value="0.00" placeholder='0.00'/>
+                        <input type="range" id="ShapeSlider1"  class="slider" step="0.001" min="0.00" max="1.00" value="0.00" placeholder='0.00'/>
                     </div>
                 </div>
                 <div class="rateBox">
@@ -587,14 +617,14 @@
                     <div>
                         <span class="input-title">PITCH</span>
                         <span class="input-title" id="pitchValue"></span>
-                        <input type="number" id="Slope2"  step="0.01" min="0.00" max="3.15" value="1.00" placeholder='0.00' class="input-field-tuning"/>
+                        <input type="number" id="Slope2"  step="0.005" min="0.00" max="3.15" value="1.00" placeholder='0.00' class="input-field-tuning"/>
                         <input type="number" id="Maxdeg2" step="1.00" min="0.00" max="3000.00" value="525.00" placeholder='0.00' class="input-field-tuning"/>
                         <span class="input-title"></span>
                     </div>
                     <div>
                         <span class="input-title"></span>
                         <span class="input-title" id="pitchValueSlider"></span>
-                        <input type="range" id="SlopeSlider2"  class="slider" step="0.01" min="0.00" max="3.15" value="1.00" placeholder='0.00'/>
+                        <input type="range" id="SlopeSlider2"  class="slider" step="0.005" min="0.00" max="3.15" value="1.00" placeholder='0.00'/>
                         <input type="range" id="MaxdegSlider2" class="slider" step="1.00" min="0.00" max="3000.00" value="525.00" placeholder='0.00'/>
                         <span class="input-title"></span>
                     </div>
@@ -608,15 +638,15 @@
                     </div>
                     <div>
                         <span class="input-title">YAW</span>
-                        <input type="number" id="Slope3"  step="0.01" min="0.00" max="3.15" value="1.00" placeholder='0.00' class="input-field-tuning"/>
+                        <input type="number" id="Slope3"  step="0.005" min="0.00" max="3.15" value="1.00" placeholder='0.00' class="input-field-tuning"/>
                         <input type="number" id="Maxdeg3" step="1.00" min="0.00" max="3000.00" value="525.00" placeholder='0.00' class="input-field-tuning"/>
-                        <input type="number" id="Shape3"  step="0.01" min="0.00" max="1.00" value="0.00" placeholder='0.00' class="input-field-tuning"/>
+                        <input type="number" id="Shape3"  step="0.001" min="0.00" max="1.00" value="0.00" placeholder='0.00' class="input-field-tuning"/>
                     </div>
                     <div>
                         <span class="input-title"></span>
-                        <input type="range" id="SlopeSlider3"  class="slider" step="0.01" min="0.00" max="3.15" value="1.00" placeholder='0.00'/>
+                        <input type="range" id="SlopeSlider3"  class="slider" step="0.005" min="0.00" max="3.15" value="1.00" placeholder='0.00'/>
                         <input type="range" id="MaxdegSlider3" class="slider" step="1.00" min="0.00" max="3000.00" value="525.00" placeholder='0.00'/>
-                        <input type="range" id="ShapeSlider3"  class="slider" step="0.01" min="0.00" max="1.00" value="0.00" placeholder='0.00'/>
+                        <input type="range" id="ShapeSlider3"  class="slider" step="0.001" min="0.00" max="1.00" value="0.00" placeholder='0.00'/>
                     </div>
                 </div>
             <h3>CONFIGURATOR PARAMS</h3>
@@ -699,28 +729,31 @@
                     <input type="range" id="otxNegExpoSlider3"  class="slider" step="0.01" min="-1.00" max="0.99" value="0.00" placeholder='0.00'/>
                 </div>
             </div>
+            <div style="text-align: center; padding-top:40px">
+                <h3 style="">Load Pilot Rates</h3>
+                <select style="">
+                    <option value="0">--Select a pilot--</option>
+                    <option value="1">(Racing) Holdox</option>
+                    <option value="2">(Racing) SFPV</option>
+                    <option value="3">(Racing) Exampe negative expo</option>
+                </select> 
+            </div>
         </div>
         <hr>
         <hr>
-        <div style="max-width:900px; display:inline-block; margin-left: auto; margin-right: auto; vertical-align: top; padding-top: 30px; padding-left:5px; padding-right:5px">
-            <h3 style="margin-left:5px">Help</h3>
-            <ul>
-                <li><b>Slope</b> sets the rate-increase at mid-stick, affecting precision. Typically between 0.6 to 1.5.</li>
-                <li><b>Shape</b> determines how the rate curve grows versus stick command.  Set <b>Shape=1</b> for a curve based on Super Rate. Less than 1 will add more and more <b>RC Expo</b>.</li>
-                <li><b>OTX Expo</b> refers to the expo curve on an Open TX-based tranmitter.  <u>Typically zero.</u>.  Included here to extend rate curve possibilities, such as: <i>negative</i> OTX Expo for increased mid-stick resolution, or for reduced PITCH <b>Slope</b> compared to ROLL.</li>
-                <li>Checking the <b>Derivative</b>-box plots the change in <b>Slope</b> versus stick position. >2.7 fine control is generally difficult, >6 turns may be overly snappy for Racing.</li>
-                <li>Checking the <b>Integral</b>-box plots for the integral of rates, a framework for comparing effective "feel" (resulting rotation) of small stick-throws</li>
-            </ul>
-            <span style="font-size:13px;">* - Check the "<b>Lock Roll/Pitch Slope</b>" box to avoid using <b>OTX Expo</b> to give PITCH and ROLL different initial slopes.</span><br>
-        </div>
-        <div style="max-width:900px; display:inline-block; margin-left: auto; margin-right: auto; vertical-align: top; padding-top: 30px; padding-left:5px; padding-right:5px">
-            <h3 style="margin-left:5px">Load Example Rates</h3>
-            <select>
-                <option value="0">--Select a pilot--</option>
-                <option value="1">(Racing) Holdox</option>
-                <option value="2">(Racing) SFPV</option>
-                <option value="3">(Racing) Exampe negative expo</option>
-            </select> 
+        <div style="vertical-align: top; padding: 30px 10px 60px 10px">
+            <a id="showHelp" href="#" onclick="showHelp(); return false;">Show help</a>
+            <a id="hideHelp" style="display:none" href="#" onclick="hideHelp(); return false;">Hide help</a>
+            <div id="help" style="display:none; margin:auto; max-width:1200px">
+                <ul>
+                    <li><b>Slope</b> sets the rate-increase at mid-stick, affecting precision. Typically between 0.6 to 1.5.</li>
+                    <li><b>Shape</b> determines how the rate curve grows versus stick command.  Set <b>Shape=1</b> for a curve based on Super Rate. Less than 1 will add more and more <b>RC Expo</b>.</li>
+                    <li><b>OTX Expo</b> refers to the expo curve on an Open TX-based tranmitter.  <u><i>Typically zero.</i></u>.  Included here as <i>negative</i> OTX Expo has potential of (1) increasing mid-stick resolution, (2) decoupling ROLL/PITCH mid-stick sensitivty, and (3) enabling faster growth from low initial Slope to mid-tier Max deg/s.</li>
+                    <li>Checking the <b>Derivative</b>-box plots the change in <b>Slope</b> versus stick position. >3 fine control is difficult. >6 controlling angular rate in tight turns is difficult.</li>
+                    <li>Checking the <b>Integral</b>-box plots for the integral of rates, a framework for comparing effective "feel" (resulting rotation) of small stick-throws</li>
+                </ul>
+                <span style="font-size:13px;">* - Check the "<b>Lock Roll/Pitch Slope</b>" box to avoid using <b>OTX Expo</b> to give PITCH and ROLL different initial slopes.</span><br>
+            </div>
         </div>
     </body>
     </body>
