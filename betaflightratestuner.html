@@ -54,13 +54,8 @@
                 if (Maxdeg==0)
                     return 0
                 kotx=(expo_otx<=0)?(1-2*expo_otx):(1-expo_otx);
-                if(kotx>1){
-                    minRcRate=Slope/kotx;
-                    maxRcRate=Maxdeg/200;
-                } else {
-                    minRcRate=Slope;
-                    maxRcRate=Maxdeg/200/kotx;
-                }   
+                minRcRate=Slope/kotx;
+                maxRcRate=Maxdeg/200;
                 rcRate = minRcRate*Shape+(1-Shape)*maxRcRate;
                 return rcRate
             }
@@ -111,13 +106,8 @@
             var updateShape = function(rcRate,expo_otx,Slope,Maxdeg){
                 //must be real rcRate
                 kotx=(expo_otx<=0)?(1-2*expo_otx):(1-expo_otx);
-                if(kotx>1){
-                    minRcRate=Slope/kotx;
-                    maxRcRate=Maxdeg/200;
-                } else {
-                    minRcRate=Slope;
-                    maxRcRate=Maxdeg/200/kotx;
-                }
+                minRcRate=Slope/kotx;
+                maxRcRate=Maxdeg/200;
                 Shape =(rcRate-maxRcRate)/(minRcRate-maxRcRate);
                 return Shape
             }
