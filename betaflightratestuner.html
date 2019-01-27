@@ -112,6 +112,47 @@
                 return Shape
             }
 
+            var checkboxCallback = function(){
+                if(checkBox.checked){
+                    $('#Slope2').hide();
+                    $('#SlopeSlider2').hide();
+                    $('#pitchValue').show().text($('#Slope1').val().toString());
+                    $('#pitchValueSlider').show();
+                    $('#otxNegExpo2').hide();
+                    $('#otxNegExpoSlider2').hide();
+                    $('#otxValue').show().text($('#otxNegExpo1').val().toString());
+                } else {
+                    $('#Slope2').show().val($('#Slope2').val()).change();
+                    $('#SlopeSlider2').show().val($('#Slope2').val()).change();
+                    $('#pitchValue').hide();
+                    $('#pitchValueSlider').hide();
+                    $('#otxNegExpo2').show().val($('#otxNegExpo1').val()).change();;
+                    $('#otxNegExpoSlider2').show().val($('#otxNegExpo1').val()).change();
+                    $('#otxValue').hide();
+                }
+                return null
+            }
+
+            var setRates = function(a){
+                if(a[0]==0){
+                    checkBox.checked=false;
+                } else {
+                    checkBox.checked=true;
+                }
+                checkboxCallback();
+                $('#bfRate1').val(a[1]).change();
+                $('#bfSuper1').val(a[2]).change();
+                $('#bfExpo1').val(a[3]).change();
+                $('#otxNegExpo1').val(a[4]).change();
+                $('#bfSuper2').val(a[5]).change();
+                $('#otxNegExpo2').val(a[6]).change();
+                $('#bfRate3').val(a[7]).change();
+                $('#bfSuper3').val(a[8]).change();
+                $('#bfExpo3').val(a[9]).change();
+                $('#otxNegExpo3').val(a[10]).change();
+                return null
+            }
+
             function drawChart(update) {
 
                 doDraw=false;
@@ -457,26 +498,6 @@
                 //lock checkbox
                 checkBox = document.getElementById("lock");
 
-                var checkboxCallback = function(){
-                    if(checkBox.checked){
-                        $('#Slope2').hide();
-                        $('#SlopeSlider2').hide();
-                        $('#pitchValue').show().text($('#Slope1').val().toString());
-                        $('#pitchValueSlider').show();
-                        $('#otxNegExpo2').hide();
-                        $('#otxNegExpoSlider2').hide();
-                        $('#otxValue').show().text($('#otxNegExpo1').val().toString());
-                    } else {
-                        $('#Slope2').show().val($('#Slope2').val()).change();
-                        $('#SlopeSlider2').show().val($('#Slope2').val()).change();
-                        $('#pitchValue').hide();
-                        $('#pitchValueSlider').hide();
-                        $('#otxNegExpo2').show().val($('#otxNegExpo1').val()).change();;
-                        $('#otxNegExpoSlider2').show().val($('#otxNegExpo1').val()).change();
-                        $('#otxValue').hide();
-                    }
-                }
-
                 $(checkBox).on('change',function(){
                     checkboxCallback();
                     drawChart(0);
@@ -514,45 +535,48 @@
 
                 $('select').on('change', function() {
                     doDraw=false;
-                    if(this.value=='2'){
-                        checkBox.checked=true;
-                        checkboxCallback();
-                        $('#bfRate1').val(0.8).change();
-                        $('#bfExpo1').val(0).change();
-                        $('#bfSuper1').val(0.63).change();
-                        $('#otxNegExpo1').val(0).change();
-                        $('#bfSuper2').val(0.63).change();
-                        $('#otxNegExpo2').val(0).change();
-                        $('#bfRate3').val(0.6).change();
-                        $('#bfExpo3').val(0).change();
-                        $('#bfSuper3').val(0.5).change();
-                        $('#otxNegExpo3').val(0).change();
-                    } else if(this.value=='1'){
-                        checkBox.checked=true;
-                        checkboxCallback();
-                        $('#bfRate1').val(2.04).change();
-                        $('#bfExpo1').val(0.45).change();
-                        $('#bfSuper1').val(0).change();
-                        $('#otxNegExpo1').val(0).change();
-                        $('#bfSuper2').val(0).change();
-                        $('#otxNegExpo2').val(0).change();
-                        $('#bfRate3').val(2.04).change();
-                        $('#bfExpo3').val(0.61).change();
-                        $('#bfSuper3').val(0).change();
-                        $('#otxNegExpo3').val(0).change();
-                    } else if(this.value=='3'){
-                        checkBox.checked=false;
-                        checkboxCallback();
-                        $('#bfRate1').val(2.00).change();
-                        $('#bfExpo1').val(0.51).change();
-                        $('#bfSuper1').val(0.08).change();
-                        $('#otxNegExpo1').val(-0.1).change();
-                        $('#bfSuper2').val(0.00).change();
-                        $('#otxNegExpo2').val(0).change();
-                        $('#bfRate3').val(0.50).change();
-                        $('#bfExpo3').val(0.29).change();
-                        $('#bfSuper3').val(0.75).change();
-                        $('#otxNegExpo3').val(-0.55).change();
+                    $('#rate_choices').find('span').hide();
+                    switch (this.value){
+                        case '1': //default
+                        $('#value1').show();
+                        setRates( 
+                            [1,
+                            1.0,0.7,0,0,
+                            0.7,0,
+                            1.0,0.7,0,0]);
+                        break
+                        case '2': //holdox
+                        $('#value2').show();
+                        setRates( 
+                            [1,
+                            2.04,0,0.45,0,
+                            0,0,
+                            2.04,0,0.61,0]);
+                        break
+                        case '3': //sfpv
+                        $('#value3').show();
+                        setRates( 
+                            [1,
+                            0.8,0.63,0,0,
+                            0.63,0,
+                            0.6,0.5,0,0]);
+                        break
+                        case '4': //example 1 neg expo
+                        $('#value4').show();
+                        setRates( 
+                            [1,
+                            0.7,0.72,0,0,
+                            0.72,0,
+                            0.32,0.87,0,-0.6]);
+                        break
+                        case '5': //example 2 neg expo
+                        $('#value5').show();
+                        setRates( 
+                            [0,
+                            0.71,0.78,0,-0.2,
+                            0.78,0,
+                            1,0.69,0,0]);
+                        break
                     }
                     doDraw=true;
                     drawChart();
@@ -719,14 +743,24 @@
                     <input type="range" id="otxNegExpoSlider3"  class="slider" step="0.01" min="-1.00" max="0.99" value="0.00" placeholder='0.00'/>
                 </div>
             </div>
-            <div style="text-align: center; padding-top:40px">
+            <div id="rate_choices" style="text-align: center; padding-top:40px">
                 <h3 style="">Load Pilot Rates</h3>
                 <select style="">
                     <option value="0">--Select a pilot--</option>
-                    <option value="1">(Racing) Holdox</option>
-                    <option value="2">(Racing) SFPV</option>
-                    <option value="3">(Racing) Exampe negative expo</option>
+                    <option value="1">(Default) Betaflight</option>
+                    <option value="2">(Racing) Holdox</option>
+                    <option value="3">(Racing) SFPV</option>
+                    <option value="4">(Example) -OTX Expo: YAW-growth</option>
+                    <option value="5">(Example) -OTX Expo: PITCH sensitivty</option>
                 </select> 
+                <div style="text-align: center; width:500px; padding-top:20px; margin-left:auto; margin-right:auto">
+                    <span id="value0" style="display:none"></span>
+                    <span id="value1" style="display:none">Default freestyle races</span>
+                    <span id="value2" style="display:none">Stick-cam youtube link: <a target="_blank" href="https://youtu.be/5Q05eznuBHE">Holdox Goes CRAZY after drinking water!</a></span>
+                    <span id="value3" style="display:none">Stick-cam youtube link: <a target="_blank" href="https://youtu.be/Iq9eghjXTfk">Velocidrone 1.12 Preview with Stick Cam!</a></span>
+                    <span id="value4" style="display:none">All start with same slope and end at same max deg/s, but notice how YAW has a faster rate of growth by using negative OTX Expo.</span>
+                    <span id="value5" style="display:none">Betaflight normally forces PITCH to have same sensitivity as ROLL.  Here, we bypass this limitation by applying a negative OTX Expo to ROLL and zero OTX Expo on PITCH.</span>
+                </div>
             </div>
         </div>
         <hr>
@@ -734,7 +768,7 @@
         <div style="vertical-align: top; padding: 30px 10px 60px 10px">
             <a id="showHelp" href="#" onclick="showHelp(); return false;">Show help</a>
             <a id="hideHelp" style="display:none" href="#" onclick="hideHelp(); return false;">Hide help</a>
-            <div id="help" style="display:none; margin:auto; max-width:1200px">
+            <div id="help" style="display:none; margin:auto; max-width:900px">
                 <ul>
                     <li><b>Slope</b> sets the rate-increase at mid-stick, affecting precision. Typically between 0.6 to 1.5.</li>
                     <li><b>Shape</b> determines how the rate curve grows versus stick command.  Set <b>Shape=1</b> for a curve based on Super Rate. Less than 1 will add more and more <b>RC Expo</b>.</li>
