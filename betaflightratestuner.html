@@ -561,21 +561,13 @@
                             0.63,0,
                             0.6,0.5,0,0]);
                         break
-                        case '4': //example 1 neg expo
-                        $('#value4').show();
-                        setRates( 
-                            [1,
-                            0.7,0.72,0,0,
-                            0.72,0,
-                            0.32,0.87,0,-0.6]);
-                        break
-                        case '5': //example 2 neg expo
-                        $('#value5').show();
+                        case '100': //my rates
+                        $('#value100').show();
                         setRates( 
                             [0,
-                            0.71,0.78,0,-0.2,
-                            0.78,0,
-                            1,0.69,0,0]);
+                            2.00,0.05,0.47,-0.1,
+                            0.0,0,
+                            0.46,0.77,0,-0.5]);
                         break
                     }
                     doDraw=true;
@@ -750,16 +742,14 @@
                     <option value="1">(Default) Betaflight</option>
                     <option value="2">(Racing) Holdox</option>
                     <option value="3">(Racing) SFPV</option>
-                    <option value="4">(Example) -OTX Expo: YAW-growth</option>
-                    <option value="5">(Example) -OTX Expo: PITCH sensitivty</option>
+                    <option value="100">(Racing) erikspen</option>
                 </select> 
                 <div style="text-align: center; width:500px; padding-top:20px; margin-left:auto; margin-right:auto">
                     <span id="value0" style="display:none"></span>
                     <span id="value1" style="display:none">Default freestyle races</span>
                     <span id="value2" style="display:none">Stick-cam youtube link: <a target="_blank" href="https://youtu.be/5Q05eznuBHE">Holdox Goes CRAZY after drinking water!</a></span>
                     <span id="value3" style="display:none">Stick-cam youtube link: <a target="_blank" href="https://youtu.be/Iq9eghjXTfk">Velocidrone 1.12 Preview with Stick Cam!</a></span>
-                    <span id="value4" style="display:none">All start with same slope and end at same max deg/s, but notice how YAW has a faster rate of growth by using negative OTX Expo.</span>
-                    <span id="value5" style="display:none">Betaflight normally forces PITCH to have same sensitivity as ROLL.  Here, we bypass this limitation by applying a negative OTX Expo to ROLL and zero OTX Expo on PITCH.</span>
+                    <span id="value100" style="display:none">My current preferred rates. Fast-growing YAW & reduced-sensitivity PITCH.</span>
                 </div>
             </div>
         </div>
@@ -769,12 +759,25 @@
             <a id="showHelp" href="#" onclick="showHelp(); return false;">Show help</a>
             <a id="hideHelp" style="display:none" href="#" onclick="hideHelp(); return false;">Hide help</a>
             <div id="help" style="display:none; margin:auto; max-width:900px">
+                <h3>Parameter definitions</h3>
                 <ul>
                     <li><b>Slope</b> sets the rate-increase at mid-stick, affecting precision. Typically between 0.6 to 1.5.</li>
-                    <li><b>Shape</b> determines how the rate curve grows versus stick command.  Set <b>Shape=1</b> for a curve based on Super Rate. Less than 1 will add more and more <b>RC Expo</b>.</li>
-                    <li><b>OTX Expo</b> refers to the expo curve on an Open TX-based tranmitter.  <u><i>Typically zero.</i></u>.  Included here as <i>negative</i> OTX Expo has potential of (1) increasing mid-stick resolution, (2) decoupling ROLL/PITCH mid-stick sensitivty, and (3) enabling faster growth from low initial Slope to mid-tier Max deg/s.</li>
-                    <li>Checking the <b>Derivative</b>-box plots the change in <b>Slope</b> versus stick position. >3 fine control is difficult. >6 controlling angular rate in tight turns is difficult.</li>
-                    <li>Checking the <b>Integral</b>-box plots for the integral of rates, a framework for comparing effective "feel" (resulting rotation) of small stick-throws</li>
+                    <li><b>Shape</b> determines how the rate curve grows versus stick command.  Set <b>Shape=1</b> for a curve based on Super Rate. Values less than <b>1</b> will add more and more <b>RC Expo</b>.</li>
+                    <li><b>OTX Expo</b> refers to the expo curve on an Open TX-based tranmitter.  <u><i>Typically zero.</i></u>.  Included here as <i>negative</i> <b>OTX Expo</b> has potential of (1) increasing mid-stick resolution, (2) decoupling ROLL/PITCH mid-stick sensitivty, and (3) enabling faster growth from low initial <b>Slope</b> to a mid-tier <b>Max deg/s</b>.</li>
+                </ul>
+                <h3>Plot checkboxes</h3>
+                <ul>
+                    <li>Checking the <b>Derivative</b>-box plots the change in <b>Slope</b> versus stick position.  Obviously, higher values or funky looking curves imply less ability to dial in the precise, desired rate.</li>
+                    <li>Checking the <b>Integral</b>-box plots for the integral of rates, a framework for comparing effective "feel" (resulting rotation) of small stick-throws.</li>
+                </ul>
+                <h3>Beginner advice (racing rates)</h3>
+                <ul>
+                    <li>Setting your rates is a battle between precision, responsiveness, intuition, and handicaps.  Don't expect to find your "dream" rates overnight!</li>
+                    <li>Common internet advice is to start with low rates, I disagree. A higher, ~linear <b>Slope</b> is usually the most intuitive as it provides immediate feedback on what your fingers are doing.</li>
+                    <li>It may seem counter intuitive, but your rates over time will likely come down, not up.  Avoiding crashing requires precise control more than it does responsiveness.</li>
+                    <li>Don't assume that YAW has to look anything similar to ROLL/PITCH, that'll just limit your options to explore.  At high camera angle, you'll never need a high YAW <b>Max deg/s</b>.  But, even small YAW movements may be difficult while simulaneously controlling THROTTLE.  My suggestion: Start with a fairly low <b>Slope</b> (~0.75) as this will help with precision, and then crank up <b>Mag deg/s</b> if your comfort zone is small.  Over time, reduce <b>Max deg/s</b> as your comfort zone expands.</li>
+                    <li>The length of many transmitter sticks is usually adjustable and should be considered an important aspect of your rates preference.</li>
+                    <li>Whether you lean towards <b>Shape=0</b> or <b>Shape=1</b>, it's ultimately just a matter of preference.  You could say that <b>Shape=0</b>'s' gradual start is linear & intuitive, or that <b>Shape=1</b>'s more consistent growth versus stick travel is best.  Both have their merits, but if in doubt, probably start with <b>Shape=1</b></li>
                 </ul>
                 <span style="font-size:13px;">* - Check the "<b>Lock Roll/Pitch Slope</b>" box to avoid using <b>OTX Expo</b> to give PITCH and ROLL different initial slopes.</span><br>
             </div>
