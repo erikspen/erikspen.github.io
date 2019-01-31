@@ -561,13 +561,21 @@
                             0.63,0,
                             0.6,0.5,0,0]);
                         break
+                        case '4': //beginner
+                        $('#value4').show();
+                        setRates( 
+                            [1,
+                            1.33,0.46,0,0,
+                            0.46,0,
+                            1.1,0.5,0,0]);
+                        break
                         case '100': //my rates
                         $('#value100').show();
                         setRates( 
                             [0,
                             2.00,0.05,0.47,-0.1,
                             0.0,0,
-                            0.46,0.77,0,-0.5]);
+                            0.46,0.77,0,-0.5]); //or Super=0.70 for 307 deg/s
                         break
                     }
                     doDraw=true;
@@ -742,14 +750,16 @@
                     <option value="1">(Default) Betaflight</option>
                     <option value="2">(Racing) Holdox</option>
                     <option value="3">(Racing) SFPV</option>
-                    <option value="100">(Racing) erikspen</option>
+                    <option value="4">(Racing) Beginner</option>
+                    <!--<option value="100">(Racing) erikspen</option>-->
                 </select> 
                 <div style="text-align: center; width:500px; padding-top:20px; margin-left:auto; margin-right:auto">
                     <span id="value0" style="display:none"></span>
                     <span id="value1" style="display:none">Default freestyle races</span>
                     <span id="value2" style="display:none">Stick-cam youtube link: <a target="_blank" href="https://youtu.be/5Q05eznuBHE">Holdox Goes CRAZY after drinking water!</a></span>
                     <span id="value3" style="display:none">Stick-cam youtube link: <a target="_blank" href="https://youtu.be/Iq9eghjXTfk">Velocidrone 1.12 Preview with Stick Cam!</a></span>
-                    <span id="value100" style="display:none">My current preferred rates. Fast-growing YAW & reduced-sensitivity PITCH.</span>
+                    <span id="value4" style="display:none">Beginner rates. Responsive.</span>
+                    <!--<span id="value100" style="display:none">My current preferred rates. Fast-growing YAW & reduced-sensitivity PITCH.</span>-->
                 </div>
             </div>
         </div>
@@ -770,6 +780,7 @@
                     <li>Checking the <b>Derivative</b>-box plots the change in <b>Slope</b> versus stick position.  Obviously, higher values or funky looking curves imply less ability to dial in the precise, desired rate.</li>
                     <li>Checking the <b>Integral</b>-box plots for the integral of rates, a framework for comparing effective "feel" (resulting rotation) of small stick-throws.</li>
                 </ul>
+                <!--
                 <h3>Beginner advice (racing rates)</h3>
                 <ul>
                     <li>Setting your rates is a battle between precision, responsiveness, intuition, and handicaps.  Don't expect to find your "dream" rates overnight!</li>
@@ -779,6 +790,7 @@
                     <li>The length of many transmitter sticks is usually adjustable and should be considered an important aspect of your rates preference.</li>
                     <li>Whether you lean towards <b>Shape=0</b> or <b>Shape=1</b>, it's ultimately just a matter of preference.  You could say that <b>Shape=0</b>'s' gradual start is linear & intuitive, or that <b>Shape=1</b>'s more consistent growth versus stick travel is best.  Both have their merits, but if in doubt, probably start with <b>Shape=1</b></li>
                 </ul>
+                -->
                 <span style="font-size:13px;">* - Check the "<b>Lock Roll/Pitch Slope</b>" box to avoid using <b>OTX Expo</b> to give PITCH and ROLL different initial slopes.</span><br>
             </div>
         </div>
