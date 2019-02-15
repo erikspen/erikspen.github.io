@@ -565,17 +565,68 @@
                         $('#value4').show();
                         setRates( 
                             [1,
-                            1.33,0.46,0,0,
-                            0.46,0,
-                            1.1,0.5,0,0]);
+                            1.33,0.38,0,0,
+                            0.38,0,
+                            1.1,0.49,0,0]);
                         break
-                        case '100': //my rates
+                        case '5': //intermediate
+                        $('#value5').show();
+                        setRates( 
+                            [1,
+                            1,0.61,0,0,
+                            0.61,0,
+                            1,0.61,0,0]);
+                        break
+                       /* case '100': //my rates 1
                         $('#value100').show();
                         setRates( 
                             [0,
                             2.00,0.05,0.47,-0.1,
                             0.0,0,
-                            0.46,0.77,0,-0.5]); //or Super=0.70 for 307 deg/s
+                            0.46,0.77,0,-0.5]);
+                        break
+                        case '101': //my rates 2
+                        $('#value101').show();
+                        setRates( 
+                            [0,
+                            1.75,0.17,0.40,-0.1,
+                            0.13,0.0,
+                            0.43,0.77,0,-0.5]);
+                        break
+                        case '102': //my rates 3
+                        $('#value102').show();
+                        setRates( 
+                            [0,
+                            1.75,0.20,0.42,-0.1,
+                            0.17,0.0,
+                            0.36,0.82,0,-0.5]);
+                        break
+                        case '103': //my rates 4
+                        $('#value103').show();
+                        setRates( 
+                            [0,
+                            2,0.08,0.45,-0.05,
+                            0.08,0.0,
+                            0.32,0.84,0,-0.55]);
+                        break
+                        
+                        case '104': //my rates 5
+                        $('#value104').show();
+                        setRates( 
+                            [0,
+                            2,0.09,0.45,-0.05, //using as high as 0.48
+                            0.09,0.0,
+                            0.29,0.86,0,-0.55]); //using as low as 0.27
+                            
+                        break*/
+                        case '104': //my rates 5
+                        $('#value104').show();
+                        setRates( 
+                            [0,
+                            2,0.09,0.45,-0.05, //using as high as 0.48
+                            0.09,0.0,
+                            0.25,0.88,0,-0.7]); //using as low as 0.27
+                            
                         break
                     }
                     doDraw=true;
@@ -751,15 +802,17 @@
                     <option value="2">(Racing) Holdox</option>
                     <option value="3">(Racing) SFPV</option>
                     <option value="4">(Racing) Beginner</option>
-                    <!--<option value="100">(Racing) erikspen</option>-->
+                    <option value="5">(Racing) Intermediate</option>
+                    <option value="104">(Racing) Crazy Yaw</option>
                 </select> 
                 <div style="text-align: center; width:500px; padding-top:20px; margin-left:auto; margin-right:auto">
                     <span id="value0" style="display:none"></span>
                     <span id="value1" style="display:none">Default freestyle races</span>
                     <span id="value2" style="display:none">Stick-cam youtube link: <a target="_blank" href="https://youtu.be/5Q05eznuBHE">Holdox Goes CRAZY after drinking water!</a></span>
                     <span id="value3" style="display:none">Stick-cam youtube link: <a target="_blank" href="https://youtu.be/Iq9eghjXTfk">Velocidrone 1.12 Preview with Stick Cam!</a></span>
-                    <span id="value4" style="display:none">Beginner rates. Responsive.</span>
-                    <!--<span id="value100" style="display:none">My current preferred rates. Fast-growing YAW & reduced-sensitivity PITCH.</span>-->
+                    <span id="value4" style="display:none">Beginner rates. Made to be responsive & lower top-end.</span>
+                    <span id="value5" style="display:none">Intermediate rates. Gives improved precision & higher top-end.</span>
+                   <span id="value104" style="display:none">Using Open-TX Expo to give a fast-growing yaw and using Open-TX expo to give Pitch a slightly lower sensitivity compared to Roll.</span>
                 </div>
             </div>
         </div>
