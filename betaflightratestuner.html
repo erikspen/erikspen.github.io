@@ -342,7 +342,7 @@
                         ]);
                     }
                 } else if (checkOptions[3].checked) {
-                    //avg slope
+                    //avg slope (integral)
                     var avg_sum=[0, 0, 0];
                     for (var i = 0; i <= stickEnd/2; i+=stickIter) {
                         avg_sum[0]=avg_sum[0]
@@ -499,6 +499,7 @@
                 checkBox = document.getElementById("lock");
 
                 $(checkBox).on('change',function(){
+                    $(evt.target).parent().css('color','blue');
                     checkboxCallback();
                     drawChart(0);
                 });
@@ -561,78 +562,34 @@
                             0.63,0,
                             0.6,0.5,0,0]);
                         break
-                        case '4': //beginner
+                        case '4': //hoopes
                         $('#value4').show();
                         setRates( 
                             [1,
-                            1.33,0.38,0,0,
-                            0.38,0,
-                            1.1,0.49,0,0]);
+                            0.8,0.66,0,0,
+                            0.64,0,
+                            0.8,0.61,0,0]);
                         break
-                        case '5': //intermediate
+                        case '5': //minchan
                         $('#value5').show();
                         setRates( 
                             [1,
-                            1,0.61,0,0,
-                            0.61,0,
-                            1,0.61,0,0]);
+                            0.99,0.72,0,0,
+                            0.72,0,
+                            0.8,0.60,0,0]);
                         break
-                       /* case '100': //my rates 1
-                        $('#value100').show();
+                        case '106': //aggressive racing
+                        $('#value106').show();
                         setRates( 
                             [0,
-                            2.00,0.05,0.47,-0.1,
-                            0.0,0,
-                            0.46,0.77,0,-0.5]);
-                        break
-                        case '101': //my rates 2
-                        $('#value101').show();
-                        setRates( 
-                            [0,
-                            1.75,0.17,0.40,-0.1,
-                            0.13,0.0,
-                            0.43,0.77,0,-0.5]);
-                        break
-                        case '102': //my rates 3
-                        $('#value102').show();
-                        setRates( 
-                            [0,
-                            1.75,0.20,0.42,-0.1,
-                            0.17,0.0,
-                            0.36,0.82,0,-0.5]);
-                        break
-                        case '103': //my rates 4
-                        $('#value103').show();
-                        setRates( 
-                            [0,
-                            2,0.08,0.45,-0.05,
-                            0.08,0.0,
-                            0.32,0.84,0,-0.55]);
-                        break
-                        
-                        case '104': //my rates 5
-                        $('#value104').show();
-                        setRates( 
-                            [0,
-                            2,0.09,0.45,-0.05, //using as high as 0.48
-                            0.09,0.0,
-                            0.29,0.86,0,-0.55]); //using as low as 0.27
-                            
-                        break*/
-                        case '104': //my rates 5
-                        $('#value104').show();
-                        setRates( 
-                            [0,
-                            2,0.09,0.45,-0.05, //using as high as 0.48
-                            0.09,0.0,
-                            0.25,0.88,0,-0.7]); //using as low as 0.27
-                            
-                        break
-                    }
-                    doDraw=true;
-                    drawChart();
+                            2.03,0.16,0.46,-0.05, //using as high as 0.48
+                            0.11,0.0,
+                            0.32,0.84,0.00,-0.6]);
+                        }
+                        doDraw=true;
+                        drawChart();
+                    });
                 });
-            });
 
             </script>
     </head>
@@ -644,10 +601,10 @@
         <div style="max-width:900px; display:inline-block; vertical-align: top">
             <div id="curve_chart" style="width: 900px; height: 600px; margin-top:-50px"></div>
             <div style="text-align:center; padding-top:50px">
-                <span>Zoom 0%-25%<input id="zoom25" type="checkbox"></span>
-                <span>Zoom 0%-50%<input id="zoom50" type="checkbox"></span>
-                <span>Derivative<input id="deriv" type="checkbox"></span>
-                <span>Integral<input id="avg" type="checkbox"></span>
+                <span><input id="zoom25" type="checkbox">Zoom 0%-25%</span>
+                <span><input id="zoom50" type="checkbox">Zoom 0%-50%</span>
+                <span><input id="deriv" type="checkbox">Derivative</span>
+                <span><input id="avg" type="checkbox">Integral</span>
             </div>
         </div>
         <div style="max-width:900px; display:inline-block; margin-left: auto; margin-right: auto; vertical-align: top; padding-top: 20px; padding-left:20px">
@@ -801,18 +758,16 @@
                     <option value="1">(Default) Betaflight</option>
                     <option value="2">(Racing) Holdox</option>
                     <option value="3">(Racing) SFPV</option>
-                    <option value="4">(Racing) Beginner</option>
-                    <option value="5">(Racing) Intermediate</option>
-                    <option value="104">(Racing) Crazy Yaw</option>
+                    <option value="4">(Racing) HOOPES</option>
+                    <option value="5">(Racing) Minchan</option>
                 </select> 
                 <div style="text-align: center; width:500px; padding-top:20px; margin-left:auto; margin-right:auto">
                     <span id="value0" style="display:none"></span>
                     <span id="value1" style="display:none">Default freestyle races</span>
                     <span id="value2" style="display:none">Stick-cam youtube link: <a target="_blank" href="https://youtu.be/5Q05eznuBHE">Holdox Goes CRAZY after drinking water!</a></span>
                     <span id="value3" style="display:none">Stick-cam youtube link: <a target="_blank" href="https://youtu.be/Iq9eghjXTfk">Velocidrone 1.12 Preview with Stick Cam!</a></span>
-                    <span id="value4" style="display:none">Beginner rates. Made to be responsive & lower top-end.</span>
-                    <span id="value5" style="display:none">Intermediate rates. Gives improved precision & higher top-end.</span>
-                   <span id="value104" style="display:none">Using Open-TX Expo to give a fast-growing yaw and using Open-TX expo to give Pitch a slightly lower sensitivity compared to Roll.</span>
+                    <span id="value4" style="display:none"></span>
+                    <span id="value5" style="display:none">(March 2019))</span>
                 </div>
             </div>
         </div>
@@ -833,17 +788,6 @@
                     <li>Checking the <b>Derivative</b>-box plots the change in <b>Slope</b> versus stick position.  Obviously, higher values or funky looking curves imply less ability to dial in the precise, desired rate.</li>
                     <li>Checking the <b>Integral</b>-box plots for the integral of rates, a framework for comparing effective "feel" (resulting rotation) of small stick-throws.</li>
                 </ul>
-                <!--
-                <h3>Beginner advice (racing rates)</h3>
-                <ul>
-                    <li>Setting your rates is a battle between precision, responsiveness, intuition, and handicaps.  Don't expect to find your "dream" rates overnight!</li>
-                    <li>Common internet advice is to start with low rates, I disagree. A higher, ~linear <b>Slope</b> is usually the most intuitive as it provides immediate feedback on what your fingers are doing.</li>
-                    <li>It may seem counter intuitive, but your rates over time will likely come down, not up.  Avoiding crashing requires precise control more than it does responsiveness.</li>
-                    <li>Don't assume that YAW has to look anything similar to ROLL/PITCH, that'll just limit your options to explore.  At high camera angle, you'll never need a high YAW <b>Max deg/s</b>.  But, even small YAW movements may be difficult while simulaneously controlling THROTTLE.  My suggestion: Start with a fairly low <b>Slope</b> (~0.75) as this will help with precision, and then crank up <b>Mag deg/s</b> if your comfort zone is small.  Over time, reduce <b>Max deg/s</b> as your comfort zone expands.</li>
-                    <li>The length of many transmitter sticks is usually adjustable and should be considered an important aspect of your rates preference.</li>
-                    <li>Whether you lean towards <b>Shape=0</b> or <b>Shape=1</b>, it's ultimately just a matter of preference.  You could say that <b>Shape=0</b>'s' gradual start is linear & intuitive, or that <b>Shape=1</b>'s more consistent growth versus stick travel is best.  Both have their merits, but if in doubt, probably start with <b>Shape=1</b></li>
-                </ul>
-                -->
                 <span style="font-size:13px;">* - Check the "<b>Lock Roll/Pitch Slope</b>" box to avoid using <b>OTX Expo</b> to give PITCH and ROLL different initial slopes.</span><br>
             </div>
         </div>
