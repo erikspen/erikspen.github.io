@@ -498,7 +498,7 @@
                 //lock checkbox
                 checkBox = document.getElementById("lock");
 
-                $(checkBox).on('change',function(){
+                $(checkBox).on('change',function(evt){
                     $(evt.target).parent().css('color','blue');
                     checkboxCallback();
                     drawChart(0);
