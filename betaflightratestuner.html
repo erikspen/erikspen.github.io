@@ -554,13 +554,21 @@
                             0,0,
                             2.04,0,0.61,0]);
                         break
-                        case '3': //sfpv
+                        case '30': //sfpv old
+                        $('#value30').show();
+                        setRates( 
+                            [1,
+                            0.86,0.63,0.0,0,
+                            0.63,0,
+                            0.73,0.50,0.00,0]);
+                        break
+                        case '3': //sfpv new
                         $('#value3').show();
                         setRates( 
                             [1,
-                            0.8,0.63,0,0,
-                            0.63,0,
-                            0.6,0.5,0,0]);
+                            1.75,0.38,0.47,0,
+                            0.38,0,
+                            1.27,0.43,0.04,0]);
                         break
                         case '4': //hoopes
                         $('#value4').show();
@@ -578,14 +586,59 @@
                             0.72,0,
                             0.8,0.60,0,0]);
                         break
-                        case '106': //aggressive racing
-                        $('#value106').show();
+                        case '6': //vanover
+                        $('#value6').show();
+                        setRates( 
+                            [1,
+                            1.08,0.5,0.05,0,
+                            0.49,0,
+                            1.08,0.49,0.05,0]);
+                        break
+
+                        case '7': //headsup fpv
+                        $('#value7').show();
+                        setRates( 
+                            [1,
+                            0.8,0.7,0.00,0,
+                            0.7,0,
+                            0.8,0.7,0.00,0]);
+                        break
+
+                        case '100': //my rates mid-min
+                        $('#value100').show();
                         setRates( 
                             [0,
-                            2.03,0.16,0.46,-0.05, //using as high as 0.48
-                            0.11,0.0,
-                            0.32,0.84,0.00,-0.6]);
-                        }
+                            2.01,0.13,0.47,-0.05, 
+                            0.10,0.0,
+                            0.77,0.55,0.49,-0.45]);
+                        break
+
+                        case '101': //my rates min
+                        $('#value101').show();
+                        setRates( 
+                            [0,
+                            2.01,0.10,0.51,-0.05, 
+                            0.07,0.0,
+                            0.36,0.78,0.00,-0.45]);
+                        break
+
+                        case '102': //my rates mid
+                        $('#value102').show();
+                        setRates( 
+                            [0,
+                            2.01,0.13,0.38,-0.05, 
+                            0.10,0.0,
+                            0.45,0.73,0.00,-0.45]);
+                        break
+
+                        case '103': //my rates max
+                        $('#value103').show();
+                        setRates( 
+                            [0,
+                            2.01,0.17,0.31,-0.05, 
+                            0.14,0.0,
+                            0.46,0.74,0.00,-0.45]);
+                    }
                         doDraw=true;
                         drawChart();
                     });
@@ -671,7 +724,7 @@
                         <input type="range" id="ShapeSlider3"  class="slider" step="0.001" min="0.00" max="1.00" value="0.00" placeholder='0.00'/>
                     </div>
                 </div>
-            <h3>CONFIGURATOR PARAMS</h3>
+            <h3>BETAFLIGHT PARAMS</h3>
             <div class="rateBox">
                 <div>
                     <span class="input-title"></span>
@@ -757,17 +810,25 @@
                     <option value="0">--Select a pilot--</option>
                     <option value="1">(Default) Betaflight</option>
                     <option value="2">(Racing) Holdox</option>
-                    <option value="3">(Racing) SFPV</option>
+                    <option value="30">(Racing) SFPV (old)</option>
+                    <option value="3">(Racing) SFPV (new)</option>
                     <option value="4">(Racing) HOOPES</option>
                     <option value="5">(Racing) Minchan</option>
+                    <option value="6">(Racing) Vanover</option>
+                    <option value="7">(Racing) Headsup FPV</option>
+
                 </select> 
                 <div style="text-align: center; width:500px; padding-top:20px; margin-left:auto; margin-right:auto">
                     <span id="value0" style="display:none"></span>
                     <span id="value1" style="display:none">Default freestyle races</span>
                     <span id="value2" style="display:none">Stick-cam youtube link: <a target="_blank" href="https://youtu.be/5Q05eznuBHE">Holdox Goes CRAZY after drinking water!</a></span>
-                    <span id="value3" style="display:none">Stick-cam youtube link: <a target="_blank" href="https://youtu.be/Iq9eghjXTfk">Velocidrone 1.12 Preview with Stick Cam!</a></span>
+                    <span id="value30" style="display:none">Stick-cam youtube link: <a target="_blank" href="https://youtu.be/Iq9eghjXTfk">Velocidrone 1.12 Preview with Stick Cam!</a></span>
+                    <span id="value3" style="display:none">Discussion: <a target="_blank" href="https://www.youtube.com/watch?v=BQasETrUF8Y&t=0s">Youtube</a></span>
                     <span id="value4" style="display:none"></span>
                     <span id="value5" style="display:none">(March 2019))</span>
+                    <span id="value6" style="display:none">(Approx. translated from F1))</span>
+                    <span id="value7" style="display:none">(<a target="_blank" href="https://www.youtube.com/watch?v=jUpAjoKQOXU">Youtube</a>)</span>
+
                 </div>
             </div>
         </div>
