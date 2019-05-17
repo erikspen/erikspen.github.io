@@ -13,6 +13,8 @@
             var doDraw=true;
             var checkBox = null;
             var checkOptions = [];
+            var showRf=false;
+            var rfRateSet = [];
 
             var clamp = function(n, minn, maxn) {
                 if(isNaN(n))
@@ -326,7 +328,9 @@
                 data.addColumn('number', 'ROLL');
                 data.addColumn('number', 'PITCH');
                 data.addColumn('number', 'YAW');
-                //data.addColumn('number', 'REF');
+                if (showRf){
+                    data.addColumn('number', 'RF');
+                }
 
                 var stickEnd=1.0;
                 var stickIter=0.01;
@@ -341,28 +345,49 @@
                 if (checkOptions[2].checked){
                     //derivative
                     for (var i = 0; i <= stickEnd; i+=stickIter) {
-                        data.addRow([
-                            i,
-                            (bfcalc(expo_otx_calc(i+stickIter,otxNegExpo1), bfRate1, bfExpo1, bfSuper1)-
-                             bfcalc(expo_otx_calc(i,otxNegExpo1), bfRate1, bfExpo1, bfSuper1))/stickIter/200,
-                            (bfcalc(expo_otx_calc(i+stickIter,otxNegExpo2), bfRate1, bfExpo1, bfSuper2)-
-                            bfcalc(expo_otx_calc(i,otxNegExpo2), bfRate1, bfExpo1, bfSuper2))/stickIter/200,
-                            (bfcalc(expo_otx_calc(i+stickIter,otxNegExpo3), bfRate3, bfExpo3, bfSuper3)-
-                            bfcalc(expo_otx_calc(i,otxNegExpo3), bfRate3, bfExpo3, bfSuper3))/stickIter/200//,
-                            //(rfcalc(i+stickIter, 256, 33, 49)-
-                            //rfcalc(i, 256, 33, 49))/stickIter/200
-                        ]);
+                        if (showRf){
+                            data.addRow([
+                                i,
+                                (bfcalc(expo_otx_calc(i+stickIter,otxNegExpo1), bfRate1, bfExpo1, bfSuper1)-
+                                bfcalc(expo_otx_calc(i,otxNegExpo1), bfRate1, bfExpo1, bfSuper1))/stickIter/200,
+                                (bfcalc(expo_otx_calc(i+stickIter,otxNegExpo2), bfRate1, bfExpo1, bfSuper2)-
+                                bfcalc(expo_otx_calc(i,otxNegExpo2), bfRate1, bfExpo1, bfSuper2))/stickIter/200,
+                                (bfcalc(expo_otx_calc(i+stickIter,otxNegExpo3), bfRate3, bfExpo3, bfSuper3)-
+                                bfcalc(expo_otx_calc(i,otxNegExpo3), bfRate3, bfExpo3, bfSuper3))/stickIter/200,
+                                (rfcalc(i+stickIter, rfRateSet[0], rfRateSet[1], rfRateSet[2])-
+                                rfcalc(i, rfRateSet[0], rfRateSet[1], rfRateSet[2]))/stickIter/200
+                            ]);
+                        } else {
+                            data.addRow([
+                                i,
+                                (bfcalc(expo_otx_calc(i+stickIter,otxNegExpo1), bfRate1, bfExpo1, bfSuper1)-
+                                bfcalc(expo_otx_calc(i,otxNegExpo1), bfRate1, bfExpo1, bfSuper1))/stickIter/200,
+                                (bfcalc(expo_otx_calc(i+stickIter,otxNegExpo2), bfRate1, bfExpo1, bfSuper2)-
+                                bfcalc(expo_otx_calc(i,otxNegExpo2), bfRate1, bfExpo1, bfSuper2))/stickIter/200,
+                                (bfcalc(expo_otx_calc(i+stickIter,otxNegExpo3), bfRate3, bfExpo3, bfSuper3)-
+                                bfcalc(expo_otx_calc(i,otxNegExpo3), bfRate3, bfExpo3, bfSuper3))/stickIter/200
+                            ]);
+                        }
                     }
                 } else {
                     //rates
                     for (var i = 0; i <= stickEnd; i+=stickIter) {
-                        data.addRow([
-                            i,
-                            bfcalc(expo_otx_calc(i,otxNegExpo1), bfRate1, bfExpo1, bfSuper1),
-                            bfcalc(expo_otx_calc(i,otxNegExpo2), bfRate1, bfExpo1, bfSuper2),
-                            bfcalc(expo_otx_calc(i,otxNegExpo3), bfRate3, bfExpo3, bfSuper3)//,
-                            //rfcalc(i, 256, 33, 49)
-                        ]);
+                        if (showRf){
+                            data.addRow([
+                                i,
+                                bfcalc(expo_otx_calc(i,otxNegExpo1), bfRate1, bfExpo1, bfSuper1),
+                                bfcalc(expo_otx_calc(i,otxNegExpo2), bfRate1, bfExpo1, bfSuper2),
+                                bfcalc(expo_otx_calc(i,otxNegExpo3), bfRate3, bfExpo3, bfSuper3),
+                                rfcalc(i, rfRateSet[0], rfRateSet[1], rfRateSet[2])
+                            ]);
+                        } else {
+                            data.addRow([
+                                i,
+                                bfcalc(expo_otx_calc(i,otxNegExpo1), bfRate1, bfExpo1, bfSuper1),
+                                bfcalc(expo_otx_calc(i,otxNegExpo2), bfRate1, bfExpo1, bfSuper2),
+                                bfcalc(expo_otx_calc(i,otxNegExpo3), bfRate3, bfExpo3, bfSuper3)
+                            ]);
+                        }
                     }
                 }
 
@@ -500,6 +525,25 @@
                     checkboxCallback();
                     drawChart(0);
                 });
+
+                $('#rf')[0].checked=false;
+                $('#rf').on('change',function(){
+                    if (showRf){
+                        showRf=false;
+                    } else {
+                        showRf=true;
+                    }
+                    rfRateSet[0]=parseFloat($('#rfRate').val(),10);
+                    rfRateSet[1]=parseFloat($('#rfExpo').val(),10);
+                    rfRateSet[2]=parseFloat($('#rfSuper').val(),10);
+                    drawChart(0);
+                });
+                $('#rfRate,#rfExpo,#rfSuper').on('change',function(){
+                    rfRateSet[0]=parseFloat($('#rfRate').val(),10);
+                    rfRateSet[1]=parseFloat($('#rfExpo').val(),10);
+                    rfRateSet[2]=parseFloat($('#rfSuper').val(),10);
+                    drawChart(0);
+                })
 
                 checkBox.checked=true;
                 checkboxCallback();
@@ -655,7 +699,6 @@
     </head>
     <body>
         <h3 style="margin-left:10px">Betaflight Rates Tuner</h3>
-        <div style="padding-left:10px">An alternative approach for setting rates in Betaflight.</div>
         <hr>
         
         <div style="max-width:900px; display:inline-block; vertical-align: top">
@@ -823,7 +866,7 @@
                     <option value="50">(Racing) Minchan (raceflight conversion)</option>
                     <option value="6">(Racing) Vanover</option>
                     <option value="7">(Racing) Headsup FPV</option>
-			
+
                 </select> 
                 <div style="text-align: center; width:500px; padding-top:20px; margin-left:auto; margin-right:auto">
                     <span id="value0" style="display:none"></span>
@@ -856,7 +899,18 @@
                 <ul>
                     <li>Checking the <b>Derivative</b>-box plots the change in <b>Slope</b> versus stick position.</li>
                 </ul>
-                <span style="font-size:13px;">* - Check the "<b>Lock Roll/Pitch Slope</b>" box to avoid using <b>OpenTX Expo</b> to give PITCH and ROLL different initial slopes.</span><br>
+                <h3>Links</h3>
+                <ul>
+                    <li><a target="_blank" href="https://flightone.com/rates">FlightOne Converter</a></li>
+                    <li><a target="_blank" href="https://github.com/apocolipse/RotorPirates">Github Rates Converter</a></li>
+                </ul>
+                <h3> Add RaceFlight reference rates (Rate,Expo,Acro+)</h3>
+                <div>
+                    <span>On/off</span><input id="rf" type="checkbox">
+                    <input type="number" id="rfRate"  step="1" min="0.00" max="5000" value="315" placeholder='0.00' class="input-field"/>
+                    <input type="number" id="rfExpo"  step="1" min="0.00" max="1000" value="41" placeholder='0.00' class="input-field"/>
+                    <input type="number" id="rfSuper" step="1" min="0.00" max="1000" value="75" placeholder='0.00' class="input-field"/>
+                </div>
             </div>
         </div>
     </body>
