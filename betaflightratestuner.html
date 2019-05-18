@@ -661,7 +661,7 @@
                             [0,
                             2.01,0.14,0.47,-0.05, 
                             0.11,0.0,
-                            1.31,0.36,0.49,-0.3]);
+                            1.30,0.36,0.49,-0.3]);
                         break
 
                         case '101': //my rates min
@@ -866,7 +866,7 @@
                     <option value="50">(Racing) Minchan (raceflight conversion)</option>
                     <option value="6">(Racing) Vanover</option>
                     <option value="7">(Racing) Headsup FPV</option>
-  
+
                 </select> 
                 <div style="text-align: center; width:500px; padding-top:20px; margin-left:auto; margin-right:auto">
                     <span id="value0" style="display:none"></span>
@@ -895,16 +895,18 @@
                     <input type="number" id="rfExpo"  step="1" min="0.00" max="1000" value="41" placeholder='0.00' class="input-field"/>
                     <input type="number" id="rfSuper" step="1" min="0.00" max="1000" value="75" placeholder='0.00' class="input-field"/>
                 </div>
+                <hr>
                 <h3>Parameter definitions</h3>
                 <ul>
-                    <li><b>Slope</b> sets the rate-increase at mid-stick, affecting precision. Typically between 0.6 to 1.5.</li>
-                    <li><b>Shape</b> determines how the rate curve grows versus stick command.  Set <b>Shape=1</b> for a curve based on Super Rate. Values less than <b>1</b> will add more and more <b>RC Expo</b>.</li>
-                    <li><b>OpenTX Expo</b> refers to the expo curve on an Open TX-based tranmitter.  <u><i>Typically zero.</i></u>.  Included here as <i>negative</i> <b>OpenTX Expo</b> has potential of (1) increasing mid-stick resolution, (2) decoupling ROLL/PITCH mid-stick sensitivty, and (3) enabling faster growth from low initial <b>Slope</b> to a mid-tier <b>Max deg/s</b>.</li>
+                    <li><b>Slope</b> represents center-stick sensitivity.  Tells you how quickly commanded deg/s raises as you first deflect the sticks.  Scaled to be equivalent to RC Rate.</li>
+                    <li><b>Shape</b> interpolates between a curve based on Super Rate, and a curve based on Expo.  Conviently, Slope and Max deg/s are not affected while adjusting.</li>
+                    <li><b>OpenTX Expo</b> refers to the expo curve on an Open TX-based tranmitter.  <u><i>Typically zero.</i></u>.  Included here as <i>negative</i> <b>OpenTX Expo</b> has a few uses.</li>
                 </ul>
                 <h3>Plot checkboxes</h3>
                 <ul>
                     <li>Checking the <b>Derivative</b>-box plots the change in <b>Slope</b> versus stick position.</li>
                 </ul>
+                <hr>
                 <h3>Links</h3>
                 <ul>
                     <li><a target="_blank" href="https://flightone.com/rates">FlightOne Converter</a></li>
