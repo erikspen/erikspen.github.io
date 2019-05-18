@@ -659,9 +659,9 @@
                         $('#value100').show();
                         setRates( 
                             [0,
-                            2.01,0.13,0.47,-0.05, 
-                            0.10,0.0,
-                            0.77,0.55,0.49,-0.45]);
+                            2.01,0.14,0.47,-0.05, 
+                            0.11,0.0,
+                            1.31,0.36,0.49,-0.3]);
                         break
 
                         case '101': //my rates min
@@ -866,7 +866,7 @@
                     <option value="50">(Racing) Minchan (raceflight conversion)</option>
                     <option value="6">(Racing) Vanover</option>
                     <option value="7">(Racing) Headsup FPV</option>
-
+  
                 </select> 
                 <div style="text-align: center; width:500px; padding-top:20px; margin-left:auto; margin-right:auto">
                     <span id="value0" style="display:none"></span>
@@ -884,11 +884,17 @@
             </div>
         </div>
         <hr>
-        <hr>
         <div style="vertical-align: top; padding: 30px 10px 60px 10px">
-            <a id="showHelp" href="#" onclick="showHelp(); return false;">Show help</a>
+            <a id="showHelp" href="#" onclick="showHelp(); return false;">Show help, +Raceflight </a>
             <a id="hideHelp" style="display:none" href="#" onclick="hideHelp(); return false;">Hide help</a>
             <div id="help" style="display:none; margin:auto; max-width:900px">
+                <h3> Add RaceFlight reference rates (Rate,Expo,Acro+)</h3>
+                <div>
+                    <span>On/off</span><input id="rf" type="checkbox">
+                    <input type="number" id="rfRate"  step="1" min="0.00" max="5000" value="315" placeholder='0.00' class="input-field"/>
+                    <input type="number" id="rfExpo"  step="1" min="0.00" max="1000" value="41" placeholder='0.00' class="input-field"/>
+                    <input type="number" id="rfSuper" step="1" min="0.00" max="1000" value="75" placeholder='0.00' class="input-field"/>
+                </div>
                 <h3>Parameter definitions</h3>
                 <ul>
                     <li><b>Slope</b> sets the rate-increase at mid-stick, affecting precision. Typically between 0.6 to 1.5.</li>
@@ -904,13 +910,7 @@
                     <li><a target="_blank" href="https://flightone.com/rates">FlightOne Converter</a></li>
                     <li><a target="_blank" href="https://github.com/apocolipse/RotorPirates">Github Rates Converter</a></li>
                 </ul>
-                <h3> Add RaceFlight reference rates (Rate,Expo,Acro+)</h3>
-                <div>
-                    <span>On/off</span><input id="rf" type="checkbox">
-                    <input type="number" id="rfRate"  step="1" min="0.00" max="5000" value="315" placeholder='0.00' class="input-field"/>
-                    <input type="number" id="rfExpo"  step="1" min="0.00" max="1000" value="41" placeholder='0.00' class="input-field"/>
-                    <input type="number" id="rfSuper" step="1" min="0.00" max="1000" value="75" placeholder='0.00' class="input-field"/>
-                </div>
+                
             </div>
         </div>
     </body>
