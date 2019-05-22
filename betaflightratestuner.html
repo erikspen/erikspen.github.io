@@ -341,6 +341,26 @@
                     var stickEnd=0.5;
                     var stickIter=0.005;
                 }
+
+                //Turn super rate red if negative expo is causing a non-increasing slope
+                //(user should increase super)
+                if (otxNegExpo1<0 && bfSuper1 < -3*otxNegExpo1/(1-2*otxNegExpo1)/(1-2*otxNegExpo1)){
+                    $('#bfSuper1').css('color','red');
+                } else {
+                    $('#bfSuper1').css('color','inherit');
+                }
+
+                if (otxNegExpo2<0 && bfSuper2 < -3*otxNegExpo2/(1-2*otxNegExpo2)/(1-2*otxNegExpo2)){
+                    $('#bfSuper2').css('color','red');
+                } else {
+                    $('#bfSuper2').css('color','inherit');
+                }
+
+                if (otxNegExpo3<0 && bfSuper3 < -3*otxNegExpo3/(1-2*otxNegExpo3)/(1-2*otxNegExpo3)){
+                    $('#bfSuper3').css('color','red');
+                } else {
+                    $('#bfSuper3').css('color','inherit');
+                }
                     
                 if (checkOptions[2].checked){
                     //derivative
@@ -659,9 +679,9 @@
                         $('#value100').show();
                         setRates( 
                             [0,
-                            1.74,0.32,0.48,-0.2, 
-                            0.27,-.15,
-                            1.46,0.32,0.48,-0.2]);
+                            1.75,0.33,0.48,-0.2, 
+                            0.28,-.16,
+                            1.42,0.32,0.48,-0.2]);
                         break
 
                         case '101': //my rates min
@@ -867,6 +887,7 @@
                     <option value="6">(Racing) Vanover</option>
                     <option value="7">(Racing) Headsup FPV</option>
                     <option value="100">(Racing) My rates</option>
+           
                 </select> 
                 <div style="text-align: center; width:500px; padding-top:20px; margin-left:auto; margin-right:auto">
                     <span id="value0" style="display:none"></span>
@@ -879,7 +900,9 @@
                     <span id="value50" style="display:none">(April 2019) For illustrative purposes only, this uses -30% expo on an Open TX transmitter to get very similar curve shapes compared to F1, matching Minchan rates posted on Facebook.</span>
                     <span id="value6" style="display:none">(Approx. translated from F1))</span>
                     <span id="value7" style="display:none">(<a target="_blank" href="https://www.youtube.com/watch?v=jUpAjoKQOXU">Youtube</a>)</span>
+               
                     <span id="value100" style="display:none"></span>
+   
                 </div>
             </div>
         </div>
@@ -896,11 +919,12 @@
                     <input type="number" id="rfSuper" step="1" min="0.00" max="1000" value="75" placeholder='0.00' class="input-field"/>
                 </div>
                 <hr>
-                <h3>Parameter definitions</h3>
+                <h3>Parameter help</h3>
                 <ul>
                     <li><b>Slope</b> represents center-stick sensitivity.  Tells you how quickly commanded deg/s raises as you first deflect the sticks.  Scaled to be equivalent to RC Rate.</li>
                     <li><b>Shape</b> interpolates between a curve based on Super Rate, and a curve based on Expo.  Conviently, Slope and Max deg/s are not affected while adjusting.</li>
                     <li><b>OpenTX Expo</b> refers to the expo curve on an Open TX-based tranmitter.  <u><i>Typically zero.</i></u>.  Included here as <i>negative</i> <b>OpenTX Expo</b> has a few uses.</li>
+                    <li>If <b>Super Rate</b> value is red in color, a negative <b>OpenTX Expo</b> is causing a non-increasing slope versus stick position and <b>Super Rate</b> should be increased.</li>
                 </ul>
                 <h3>Plot checkboxes</h3>
                 <ul>
