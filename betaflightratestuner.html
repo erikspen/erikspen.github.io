@@ -51,6 +51,26 @@
                 return angleRate
             }
 
+            //Race flight --> Betaflight
+            var rfCovert = function(rcRate_rf, expo_rf, superRate_rf, expo_otx) {
+
+                if (expo_otx==0){
+                    rcRate = (rcRate_rf*(superRate_rf + 100)*(expo_rf*superRate_rf - 100*superRate_rf + 10000))/200000000;
+                    superRate = -(superRate_rf*(expo_rf - 100))/10000;
+                    expo = (10000*expo_rf + 100*expo_rf*superRate_rf + expo_rf*superRate_rf**2 - 100*superRate_rf**2)/((superRate_rf + 100)*(expo_rf*superRate_rf - 100*superRate_rf + 10000));
+                } else if (expo_otx<0){
+                    rcRate = (rcRate_rf*(superRate_rf + 100)*(expo_rf*superRate_rf - 100*superRate_rf - 10000*expo_otx + 200*expo_otx*superRate_rf + 40000*expo_otx**2 - 2*expo_rf*expo_otx*superRate_rf + 10000))/(200000000*(2*expo_otx - 1)**2);
+                    superRate = -(30000*expo_otx - 100*superRate_rf + expo_rf*superRate_rf + 200*expo_otx*superRate_rf - 2*expo_rf*expo_otx*superRate_rf)/(10000*(2*expo_otx - 1)**2);
+                    expo = (10000*expo_rf + 1000000*expo_otx - 20000*expo_rf*expo_otx + 100*expo_rf*superRate_rf + 10000*expo_otx*superRate_rf + expo_rf*superRate_rf**2 + 200*expo_otx*superRate_rf**2 + 40000*expo_otx**2*superRate_rf + 4000000*expo_otx**2 - 100*superRate_rf**2 - 200*expo_rf*expo_otx*superRate_rf - 2*expo_rf*expo_otx*superRate_rf**2)/((superRate_rf + 100)*(expo_rf*superRate_rf - 100*superRate_rf - 10000*expo_otx + 200*expo_otx*superRate_rf + 40000*expo_otx**2 - 2*expo_rf*expo_otx*superRate_rf + 10000));
+                } else {
+                    rcRate = (rcRate_rf*(superRate_rf + 100)*(10000*expo_otx + 100*superRate_rf - expo_rf*superRate_rf - 10000))/(200000000*(expo_otx - 1));
+                    superRate = (superRate_rf*(expo_rf - 100))/(10000*(expo_otx - 1));
+                    expo = -(10000*expo_rf - 1000000*expo_otx + 100*expo_rf*superRate_rf - 10000*expo_otx*superRate_rf + expo_rf*superRate_rf**2 - 100*superRate_rf**2)/((superRate_rf + 100)*(10000*expo_otx + 100*superRate_rf - expo_rf*superRate_rf - 10000));
+                }
+                return [rcRate,superRate,expo]
+
+            }
+
             //Open TX expo function
             var expo_otx_calc = function(rcCommand, expo_otx){
                 if(expo_otx < 0){
@@ -184,12 +204,12 @@
                     $('#otxNegExpoSlider1').val(otxNegExpo1).change();
                     //Roll.3,4
                     rc = updateRcRateUnadjusted(otxNegExpo1, Slope1, Maxdeg1, Shape1);
-                     $('#bfRate1').val(clamp(adjustRcRate(rc),0,2.18)).change();
-                     $('#bfExpo1').val(clamp(updateExpo(rc,otxNegExpo1,Slope1),-0.01,1)).change();
-                     $('#bfSuper1').val(clamp(updateSuperRate(rc,Maxdeg1),0,1)).change();
-                     $('#bfRateSlider1').val(clamp(adjustRcRate(rc),0,2.18)).change();
-                     $('#bfExpoSlider1').val(clamp(updateExpo(rc,otxNegExpo1,Slope1),-0.01,1)).change();
-                     $('#bfSuperSlider1').val(clamp(updateSuperRate(rc,Maxdeg1),0,1)).change();
+                    $('#bfRate1').val(clamp(adjustRcRate(rc),0,2.18)).change();
+                    $('#bfExpo1').val(clamp(updateExpo(rc,otxNegExpo1,Slope1),-0.01,1)).change();
+                    $('#bfSuper1').val(clamp(updateSuperRate(rc,Maxdeg1),0,1)).change();
+                    $('#bfRateSlider1').val(clamp(adjustRcRate(rc),0,2.18)).change();
+                    $('#bfExpoSlider1').val(clamp(updateExpo(rc,otxNegExpo1,Slope1),-0.01,1)).change();
+                    $('#bfSuperSlider1').val(clamp(updateSuperRate(rc,Maxdeg1),0,1)).change();
 
                     //Pitch.1
                     if(checkBox.checked){
@@ -452,6 +472,29 @@
                 $('#hideHelp').hide();
             }
 
+            //Convert rates
+            var convertRoll = function(){
+                toBf = rfCovert(rfRateSet[0], rfRateSet[1], rfRateSet[2], clamp(parseFloat($('#otxNegExpo1').val(), 10),-1,0.999));
+                $('#bfRate1').val(clamp(adjustRcRate(toBf[0]),0,2.18)).change();
+                $('#bfExpo1').val(clamp(Math.round(toBf[2]*100)/100,-0.01,1)).change();
+                $('#bfSuper1').val(clamp(Math.round(toBf[1]*100)/100,0,1)).change();
+                $('#bfRateSlider1').val(clamp(adjustRcRate(toBf[0]),0,2.18)).change();
+                $('#bfExpoSlider1').val(clamp(toBf[2],-0.01,1)).change();
+                $('#bfSuperSlider1').val(clamp(toBf[1],0,1)).change();
+                drawChart(0);
+            }
+
+            var convertYaw = function(){
+                toBf = rfCovert(rfRateSet[0], rfRateSet[1], rfRateSet[2], clamp(parseFloat($('#otxNegExpo3').val(), 10),-1,0.999));
+                $('#bfRate3').val(clamp(adjustRcRate(toBf[0]),0,2.18)).change();
+                $('#bfExpo3').val(clamp(Math.round(toBf[2]*100)/100,-0.01,1)).change();
+                $('#bfSuper3').val(clamp(Math.round(toBf[1]*100)/100,0,1)).change();
+                $('#bfRateSlider3').val(clamp(adjustRcRate(toBf[0]),0,2.18)).change();
+                $('#bfExpoSlider3').val(clamp(toBf[2],-0.01,1)).change();
+                $('#bfSuperSlider3').val(clamp(toBf[1],0,1)).change();
+                drawChart(0);
+            } 
+
             $( document ).ready(function() {
                 google.charts.load('current', {'packages':['corechart']});
                 google.charts.setOnLoadCallback(drawChart);
@@ -652,9 +695,9 @@
                         $('#value50').show();
                         setRates( 
                             [1,
-                            1.36,0.51,0.56,-0.3,
-                            0.51,0,
-                            1.1,0.42,0.49,-0.3]);
+                            1.03,0.63,0.44,-0.31,
+                            0.63,0,
+                            0.84,0.56,0.37,-0.31]);
                         break
 
                         case '6': //vanover
@@ -679,9 +722,9 @@
                         $('#value100').show();
                         setRates( 
                             [0,
-                            1.74,0.32,0.47,-0.2, 
-                            0.28,-.16,
-                            1.41,0.32,0.47,-0.2]);
+                            1.55,0.40,0.5,-0.3, 
+                            0.36,-.26,
+                            0.86,0.51,0.2,-0.3]);
                         break
 
                         case '101': //my rates min
@@ -713,6 +756,11 @@
                         doDraw=true;
                         drawChart();
                     });
+
+                    rfRateSet[0]=parseFloat($('#rfRate').val(),10);
+                    rfRateSet[1]=parseFloat($('#rfExpo').val(),10);
+                    rfRateSet[2]=parseFloat($('#rfSuper').val(),10);
+
                 });
 
             </script>
@@ -887,7 +935,9 @@
                     <option value="6">(Racing) Vanover</option>
                     <option value="7">(Racing) Headsup FPV</option>
                     <option value="100">(Racing) My rates</option>
-           
+                    <option value="101">(Racing) My rates min</option>
+                    <option value="102">(Racing) My rates mid</option>
+                    <option value="103">(Racing) My rates max</option>
                 </select> 
                 <div style="text-align: center; width:500px; padding-top:20px; margin-left:auto; margin-right:auto">
                     <span id="value0" style="display:none"></span>
@@ -897,11 +947,13 @@
                     <span id="value3" style="display:none">Discussion: <a target="_blank" href="https://www.youtube.com/watch?v=BQasETrUF8Y&t=0s">Youtube</a></span>
                     <span id="value4" style="display:none"></span>
                     <span id="value5" style="display:none">(March 2019)</span>
-                    <span id="value50" style="display:none">(April 2019) For illustrative purposes only, this uses -30% expo on an Open TX transmitter to get very similar curve shapes compared to F1, matching Minchan rates posted on Facebook.</span>
+                    <span id="value50" style="display:none">(April 2019) For illustrative purposes, this uses -31% expo on an Open TX transmitter to get very similar curve shapes compared to Flight1, matching Minchan rates posted on Facebook.</span>
                     <span id="value6" style="display:none">(Approx. translated from F1))</span>
                     <span id="value7" style="display:none">(<a target="_blank" href="https://www.youtube.com/watch?v=jUpAjoKQOXU">Youtube</a>)</span>
-                    <span id="value100" style="display:none">For me, this is how "expo" should feel.</span>
-   
+                    <span id="value101" style="display:none"></span>
+                    <span id="value100" style="display:none"></span>
+                    <span id="value102" style="display:none"></span>
+                    <span id="value103" style="display:none"></span>
                 </div>
             </div>
         </div>
@@ -916,6 +968,7 @@
                     <input type="number" id="rfRate"  step="1" min="0.00" max="5000" value="315" placeholder='0.00' class="input-field"/>
                     <input type="number" id="rfExpo"  step="1" min="0.00" max="1000" value="41" placeholder='0.00' class="input-field"/>
                     <input type="number" id="rfSuper" step="1" min="0.00" max="1000" value="75" placeholder='0.00' class="input-field"/>
+                    <span style="padding:0 1em 0 2em"><a id="rf2roll" href="#" onclick="convertRoll(); return false;">Convert-->Roll</a></span><span style="padding:0 0 1em 0"><a id="rf2yaw" href="#" onclick="convertYaw(); return false;">Convert-->Yaw</a></span>
                 </div>
                 <hr>
                 <h3>Parameter help</h3>
