@@ -52,7 +52,7 @@
             }
 
             //Race flight --> Betaflight
-            var rfCovert = function(rcRate_rf, expo_rf, superRate_rf, expo_otx) {
+            var rcConvert1 = function(rcRate_rf, expo_rf, superRate_rf, expo_otx) {
 
                 if (expo_otx==0){
                     rcRate = (rcRate_rf*(superRate_rf + 100)*(expo_rf*superRate_rf - 100*superRate_rf + 10000))/200000000;
@@ -68,6 +68,30 @@
                     expo = -(10000*expo_rf - 1000000*expo_otx + 100*expo_rf*superRate_rf - 10000*expo_otx*superRate_rf + expo_rf*superRate_rf**2 - 100*superRate_rf**2)/((superRate_rf + 100)*(10000*expo_otx + 100*superRate_rf - expo_rf*superRate_rf - 10000));
                 }
                 return [rcRate,superRate,expo]
+
+            }
+
+            //Betaflight --> Race flight
+            var rcConvert2 = function(rcRate, superRate, expo, expo_otx) {
+
+                rcRate=unadjustedRcRate(rcRate);
+
+                superRate=clamp(superRate,0.001,1);
+
+                if (expo_otx==0){
+                    rcRate_rf = -(100*rcRate*(expo + superRate - expo*superRate + ((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) - 1))/(superRate*(superRate - 1));
+                    superRate_rf = (50*expo + 50*superRate - 50*expo*superRate + 50*((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) - 50)/((expo - 1)*(superRate - 1));
+                    expo_rf = 50*expo + 50*superRate - 50*expo*superRate - 50*((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) + 50;
+                } else if (expo_otx<0){
+                    rcRate_rf = (100*rcRate*(2*expo_otx - 1)*(expo + 2*expo_otx + superRate - 2*expo*expo_otx - expo*superRate - 2*expo_otx*superRate + ((expo - 1)*(superRate - 1)*(8*expo_otx - expo + 3*superRate + 4*expo*expo_otx + expo*superRate - 12*expo_otx*superRate - 4*expo*expo_otx**2 + 12*expo_otx**2*superRate + 4*expo_otx**2 - 4*expo*expo_otx*superRate + 4*expo*expo_otx**2*superRate + 1))**(1/2) + 2*expo*expo_otx*superRate - 1))/((superRate - 1)*(3*expo_otx + superRate - 4*expo_otx*superRate + 4*expo_otx**2*superRate));
+                    superRate_rf = -(50*expo + 100*expo_otx + 50*superRate - 100*expo*expo_otx - 50*expo*superRate - 100*expo_otx*superRate + 50*((expo - 1)*(superRate - 1)*(8*expo_otx - expo + 3*superRate + 4*expo*expo_otx + expo*superRate - 12*expo_otx*superRate - 4*expo*expo_otx**2 + 12*expo_otx**2*superRate + 4*expo_otx**2 - 4*expo*expo_otx*superRate + 4*expo*expo_otx**2*superRate + 1))**(1/2) + 100*expo*expo_otx*superRate - 50)/((2*expo_otx - 1)*(expo - 1)*(superRate - 1));
+                    expo_rf = 50*expo + 100*expo_otx + 50*superRate - 100*expo*expo_otx - 50*expo*superRate - 100*expo_otx*superRate - 50*((expo - 1)*(superRate - 1)*(8*expo_otx - expo + 3*superRate + 4*expo*expo_otx + expo*superRate - 12*expo_otx*superRate - 4*expo*expo_otx**2 + 12*expo_otx**2*superRate + 4*expo_otx**2 - 4*expo*expo_otx*superRate + 4*expo*expo_otx**2*superRate + 1))**(1/2) + 100*expo*expo_otx*superRate + 50;
+                } else {
+                    rcRate_rf = -(100*rcRate*(expo + superRate - expo*superRate + ((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) - 1))/(superRate*(superRate - 1));
+                    superRate_rf = (50*expo + 50*superRate - 50*expo*superRate + 50*((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) - 50)/((expo - 1)*(superRate - 1));
+                    expo_rf = 50*expo + 50*expo_otx + 50*superRate - 50*expo*expo_otx - 50*expo*superRate - 50*expo_otx*superRate + 50*expo_otx*((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) - 50*((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) + 50*expo*expo_otx*superRate + 50;
+                }
+                return [rcRate_rf,superRate_rf,expo_rf]
 
             }
 
@@ -472,9 +496,21 @@
                 $('#hideHelp').hide();
             }
 
+            var showRfRates = function(){
+                $('#rfRates').show();
+                $('#showRfRates').hide();
+                $('#hideRfRates').show();
+            }
+
+            var hideRfRates = function(){
+                $('#rfRates').hide();
+                $('#showRfRates').show();
+                $('#hideRfRates').hide();
+            }
+
             //Convert rates
             var convertRoll = function(){
-                toBf = rfCovert(rfRateSet[0], rfRateSet[1], rfRateSet[2], clamp(parseFloat($('#otxNegExpo1').val(), 10),-1,0.999));
+                toBf = rcConvert1(rfRateSet[0], rfRateSet[1], rfRateSet[2], clamp(parseFloat($('#otxNegExpo1').val(), 10),-1,0.999));
                 $('#bfRate1').val(clamp(adjustRcRate(toBf[0]),0,2.18)).change();
                 $('#bfExpo1').val(clamp(Math.round(toBf[2]*100)/100,-0.01,1)).change();
                 $('#bfSuper1').val(clamp(Math.round(toBf[1]*100)/100,0,1)).change();
@@ -485,13 +521,30 @@
             }
 
             var convertYaw = function(){
-                toBf = rfCovert(rfRateSet[0], rfRateSet[1], rfRateSet[2], clamp(parseFloat($('#otxNegExpo3').val(), 10),-1,0.999));
+                toBf = rcConvert1(rfRateSet[0], rfRateSet[1], rfRateSet[2], clamp(parseFloat($('#otxNegExpo3').val(), 10),-1,0.999));
                 $('#bfRate3').val(clamp(adjustRcRate(toBf[0]),0,2.18)).change();
                 $('#bfExpo3').val(clamp(Math.round(toBf[2]*100)/100,-0.01,1)).change();
                 $('#bfSuper3').val(clamp(Math.round(toBf[1]*100)/100,0,1)).change();
                 $('#bfRateSlider3').val(clamp(adjustRcRate(toBf[0]),0,2.18)).change();
                 $('#bfExpoSlider3').val(clamp(toBf[2],-0.01,1)).change();
                 $('#bfSuperSlider3').val(clamp(toBf[1],0,1)).change();
+                drawChart(0);
+            } 
+
+            //to raceflight
+            var convertRoll2RF = function(){
+                toRf = rcConvert2(parseFloat($('#bfRate1').val(), 10), parseFloat($('#bfSuper1').val(), 10), parseFloat($('#bfExpo1').val(), 10), clamp(parseFloat($('#otxNegExpo1').val(), 10),-1,0.999));
+                $('#rfRate').val(Math.round(toRf[0])).change();
+                $('#rfSuper').val(Math.round(toRf[1])).change();
+                $('#rfExpo').val(Math.round(toRf[2])).change();
+                drawChart(0);
+            }
+
+            var convertYaw2RF = function(){
+                toRf = rcConvert2(parseFloat($('#bfRate3').val(), 10), parseFloat($('#bfSuper3').val(), 10), parseFloat($('#bfExpo3').val(), 10), clamp(parseFloat($('#otxNegExpo3').val(), 10),-1,0.999));
+                $('#rfRate').val(Math.round(toRf[0])).change();
+                $('#rfSuper').val(Math.round(toRf[1])).change();
+                $('#rfExpo').val(Math.round(toRf[2])).change();
                 drawChart(0);
             } 
 
@@ -718,40 +771,13 @@
                             0.8,0.7,0.00,0]);
                         break
 
-                        case '100': //my rates mid-min
+                        case '100': //my rates
                         $('#value100').show();
                         setRates( 
                             [0,
-                            1.55,0.40,0.5,-0.3, 
+                            1.56,0.40,0.5,-0.3, 
                             0.36,-.26,
-                            0.86,0.51,0.2,-0.3]);
-                        break
-
-                        case '101': //my rates min
-                        $('#value101').show();
-                        setRates( 
-                            [0,
-                            2.01,0.10,0.51,-0.05, 
-                            0.07,0.0,
-                            0.36,0.78,0.00,-0.45]);
-                        break
-
-                        case '102': //my rates mid
-                        $('#value102').show();
-                        setRates( 
-                            [0,
-                            2.01,0.13,0.38,-0.05, 
-                            0.10,0.0,
-                            0.45,0.73,0.00,-0.45]);
-                        break
-
-                        case '103': //my rates max
-                        $('#value103').show();
-                        setRates( 
-                            [0,
-                            2.01,0.17,0.31,-0.05, 
-                            0.14,0.0,
-                            0.46,0.74,0.00,-0.45]);
+                            0.84,0.53,0.2,-0.3]);
                     }
                         doDraw=true;
                         drawChart();
@@ -935,7 +961,6 @@
                     <option value="6">(Racing) Vanover</option>
                     <option value="7">(Racing) Headsup FPV</option>
                     <option value="100">(Racing) My rates</option>
-          
                 </select> 
                 <div style="text-align: center; width:500px; padding-top:20px; margin-left:auto; margin-right:auto">
                     <span id="value0" style="display:none"></span>
@@ -948,32 +973,48 @@
                     <span id="value50" style="display:none">(April 2019) For illustrative purposes, this uses -31% expo on an Open TX transmitter to get very similar curve shapes compared to Flight1, matching Minchan rates posted on Facebook.</span>
                     <span id="value6" style="display:none">(Approx. translated from F1))</span>
                     <span id="value7" style="display:none">(<a target="_blank" href="https://www.youtube.com/watch?v=jUpAjoKQOXU">Youtube</a>)</span>
-          
                     <span id="value100" style="display:none"></span>
-      
                 </div>
             </div>
         </div>
         <hr>
         <div style="vertical-align: top; padding: 30px 10px 60px 10px">
-            <a id="showHelp" href="#" onclick="showHelp(); return false;">Show help, +Raceflight </a>
-            <a id="hideHelp" style="display:none" href="#" onclick="hideHelp(); return false;">Hide help</a>
-            <div id="help" style="display:none; margin:auto; max-width:900px">
+
+            <div>
+                <a id="showRfRates" href="#" onclick="showRfRates(); return false;">Show Raceflight Rates </a>
+                <a id="hideRfRates" style="display:none" href="#" onclick="hideRfRates(); return false;">Hide Raceflight Rates</a>
+            </div>
+            
+            <div id="rfRates" style="display:none; margin:auto; max-width:900px">
                 <h3> Add RaceFlight reference rates (Rate,Expo,Acro+)</h3>
                 <div>
                     <span>On/off</span><input id="rf" type="checkbox">
                     <input type="number" id="rfRate"  step="1" min="0.00" max="5000" value="315" placeholder='0.00' class="input-field"/>
                     <input type="number" id="rfExpo"  step="1" min="0.00" max="1000" value="41" placeholder='0.00' class="input-field"/>
                     <input type="number" id="rfSuper" step="1" min="0.00" max="1000" value="75" placeholder='0.00' class="input-field"/>
-                    <span style="padding:0 1em 0 2em"><a id="rf2roll" href="#" onclick="convertRoll(); return false;">Convert-->Roll</a></span><span style="padding:0 0 1em 0"><a id="rf2yaw" href="#" onclick="convertYaw(); return false;">Convert-->Yaw</a></span>
+                    <div style="padding:10px 0 0 0;">
+                        <span style="padding:0 1em 0 2em">Convert Raceflight to Betaflight: <a id="rf2roll" href="#" onclick="convertRoll(); return false;">&#10532; Roll</a></span><span style="padding:0 0 1em 0"><a id="rf2yaw" href="#" onclick="convertYaw(); return false;">&#10532; Yaw</a></span>
+                    </div>
+                    <div>
+                        <span style="padding:0 1em 0 2em">Convert Betaflight to Raceflight: <a id="rf2roll" href="#" onclick="convertRoll2RF(); return false;">&#10534; Roll</a></span><span style="padding:0 0 1em 0"><a id="rf2yaw" href="#" onclick="convertYaw2RF(); return false;">&#10534; Yaw</a></span>
+                    </div>
                 </div>
-                <hr>
+            </div>
+
+            <div>
+                <a id="showHelp" href="#" onclick="showHelp(); return false;">Show help </a>
+                <a id="hideHelp" style="display:none" href="#" onclick="hideHelp(); return false;">Hide help</a>
+            </div>
+            
+            
+            <div id="help" style="display:none; margin:auto; max-width:900px">
                 <h3>Parameter help</h3>
                 <ul>
                     <li><b>Slope</b> represents center-stick sensitivity.  Tells you how quickly commanded deg/s raises as you first deflect the sticks.  Scaled to be equivalent to RC Rate.</li>
                     <li><b>Shape</b> interpolates between a curve based on Super Rate, and a curve based on Expo.  Conviently, Slope and Max deg/s are not affected while adjusting.</li>
                     <li><b>OpenTX Expo</b> refers to the expo curve on an Open TX-based tranmitter.  <u><i>Typically zero.</i></u>.  Included here as <i>negative</i> <b>OpenTX Expo</b> has a few uses.</li>
-                    <li>If <b>Super Rate</b> value is red in color, a negative <b>OpenTX Expo</b> is causing a non-increasing slope versus stick position and <b>Super Rate</b> should be increased.</li>
+                    <li>If <b>Super Rate</b> value is red in color, a negative <b>OpenTX Expo</b> is causing a non-increasing slope.  To resolve, <b>Super Rate</b> should be increased.</li>
+                    <li>Raceflight conversion based on matching initial slope of the curve and max deg/s; does not represent an averaged "closest fit" result.</li>
                 </ul>
                 <h3>Plot checkboxes</h3>
                 <ul>
