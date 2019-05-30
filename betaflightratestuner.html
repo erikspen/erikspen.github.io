@@ -67,8 +67,35 @@
                     superRate = (superRate_rf*(expo_rf - 100))/(10000*(expo_otx - 1));
                     expo = -(10000*expo_rf - 1000000*expo_otx + 100*expo_rf*superRate_rf - 10000*expo_otx*superRate_rf + expo_rf*superRate_rf**2 - 100*superRate_rf**2)/((superRate_rf + 100)*(10000*expo_otx + 100*superRate_rf - expo_rf*superRate_rf - 10000));
                 }
-                return [rcRate,superRate,expo]
 
+                //If fails, brute-force it, preference for smallest expo that gives low error @ 20% position
+                if (rcRate<0 || superRate<0 || superRate>1 || expo<0 || expo>1){
+                    var error_1=0;
+                    var error_2=-1;
+                    
+                    for (var expo_i = 0; expo_i < 1; expo_i+=0.01){
+                        rcRate = (rcRate_rf*(expo_rf - 100))/(100*(200*expo_i - 200));
+                        superRate = 1-(20000*rcRate)/(rcRate_rf*(superRate_rf + 100));
+                        if (rcRate>0 && superRate<1 && superRate>=0){
+                            error_1 = Math.abs(bfcalc(expo_otx_calc(0.2,expo_otx), rcRate, expo_i, superRate)-rfcalc(0.2, rcRate_rf, expo_rf, superRate_rf));
+                            if (error_2>0){
+                                if (error_1 >= error_2){
+                                    //if getting worse, quit
+                                    break
+                                } else {
+                                    expo=expo_i;
+                                }
+                            } else {
+                                expo=expo_i;
+                            }
+                        }
+                        error_2=error_1;
+                    }
+                    rcRate = (rcRate_rf*(expo_rf - 100))/(100*(200*expo - 200));
+                    superRate = 1-(20000*rcRate)/(rcRate_rf*(superRate_rf + 100));
+                }
+                
+                return [rcRate,superRate,expo]
             }
 
             //Betaflight --> Race flight
@@ -90,6 +117,30 @@
                     rcRate_rf = -(100*rcRate*(expo + superRate - expo*superRate + ((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) - 1))/(superRate*(superRate - 1));
                     superRate_rf = (50*expo + 50*superRate - 50*expo*superRate + 50*((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) - 50)/((expo - 1)*(superRate - 1));
                     expo_rf = 50*expo + 50*expo_otx + 50*superRate - 50*expo*expo_otx - 50*expo*superRate - 50*expo_otx*superRate + 50*expo_otx*((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) - 50*((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) + 50*expo*expo_otx*superRate + 50;
+                }
+                return [rcRate_rf,superRate_rf,expo_rf]
+
+            }
+
+            //(gives incorrect negative)
+            var rcConvert22 = function(rcRate, superRate, expo, expo_otx) {
+
+                rcRate=unadjustedRcRate(rcRate);
+
+                superRate=clamp(superRate,0.001,1);
+
+                if (expo_otx==0){
+                    rcRate_rf = (100*rcRate*(expo*superRate - superRate - expo + ((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) + 1))/(superRate*(superRate - 1));
+                    superRate_rf = -(50*expo*superRate - 50*superRate - 50*expo + 50*((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) + 50)/((expo - 1)*(superRate - 1));
+                    expo_rf = 50*expo + 50*superRate - 50*expo*superRate + 50*((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) + 50;
+                } else if (expo_otx<0){
+                    rcRate_rf = -(100*rcRate*(2*expo_otx - 1)*(2*expo*expo_otx - 2*expo_otx - superRate - expo + expo*superRate + 2*expo_otx*superRate + ((expo - 1)*(superRate - 1)*(8*expo_otx - expo + 3*superRate + 4*expo*expo_otx + expo*superRate - 12*expo_otx*superRate - 4*expo*expo_otx**2 + 12*expo_otx**2*superRate + 4*expo_otx**2 - 4*expo*expo_otx*superRate + 4*expo*expo_otx**2*superRate + 1))**(1/2) - 2*expo*expo_otx*superRate + 1))/((superRate - 1)*(3*expo_otx + superRate - 4*expo_otx*superRate + 4*expo_otx**2*superRate));
+                    superRate_rf = (100*expo*expo_otx - 100*expo_otx - 50*superRate - 50*expo + 50*expo*superRate + 100*expo_otx*superRate + 50*((expo - 1)*(superRate - 1)*(8*expo_otx - expo + 3*superRate + 4*expo*expo_otx + expo*superRate - 12*expo_otx*superRate - 4*expo*expo_otx**2 + 12*expo_otx**2*superRate + 4*expo_otx**2 - 4*expo*expo_otx*superRate + 4*expo*expo_otx**2*superRate + 1))**(1/2) - 100*expo*expo_otx*superRate + 50)/((2*expo_otx - 1)*(expo - 1)*(superRate - 1));
+                    expo_rf = 50*expo + 100*expo_otx + 50*superRate - 100*expo*expo_otx - 50*expo*superRate - 100*expo_otx*superRate + 50*((expo - 1)*(superRate - 1)*(8*expo_otx - expo + 3*superRate + 4*expo*expo_otx + expo*superRate - 12*expo_otx*superRate - 4*expo*expo_otx**2 + 12*expo_otx**2*superRate + 4*expo_otx**2 - 4*expo*expo_otx*superRate + 4*expo*expo_otx**2*superRate + 1))**(1/2) + 100*expo*expo_otx*superRate + 50;
+                } else {
+                    rcRate_rf = (100*rcRate*(expo*superRate - superRate - expo + ((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) + 1))/(superRate*(superRate - 1));
+                    superRate_rf = -(50*expo*superRate - 50*superRate - 50*expo + 50*((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) + 50)/((expo - 1)*(superRate - 1));
+                    expo_rf = 50*expo + 50*expo_otx + 50*superRate - 50*expo*expo_otx - 50*expo*superRate - 50*expo_otx*superRate - 50*expo_otx*((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) + 50*((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) + 50*expo*expo_otx*superRate + 50;
                 }
                 return [rcRate_rf,superRate_rf,expo_rf]
 
@@ -228,10 +279,10 @@
                     $('#otxNegExpoSlider1').val(otxNegExpo1).change();
                     //Roll.3,4
                     rc = updateRcRateUnadjusted(otxNegExpo1, Slope1, Maxdeg1, Shape1);
-                    $('#bfRate1').val(clamp(adjustRcRate(rc),0,2.18)).change();
+                    $('#bfRate1').val(clamp(adjustRcRate(rc),0,2.40)).change();
                     $('#bfExpo1').val(clamp(updateExpo(rc,otxNegExpo1,Slope1),-0.01,1)).change();
                     $('#bfSuper1').val(clamp(updateSuperRate(rc,Maxdeg1),0,1)).change();
-                    $('#bfRateSlider1').val(clamp(adjustRcRate(rc),0,2.18)).change();
+                    $('#bfRateSlider1').val(clamp(adjustRcRate(rc),0,2.40)).change();
                     $('#bfExpoSlider1').val(clamp(updateExpo(rc,otxNegExpo1,Slope1),-0.01,1)).change();
                     $('#bfSuperSlider1').val(clamp(updateSuperRate(rc,Maxdeg1),0,1)).change();
 
@@ -272,16 +323,16 @@
                     $('#otxNegExpoSlider3').val(otxNegExpo3).change();
                     //Yaw.3,4
                     rc = updateRcRateUnadjusted(otxNegExpo3, Slope3, Maxdeg3, Shape3);
-                     $('#bfRate3').val(clamp(adjustRcRate(rc),0,2.18)).change();
+                     $('#bfRate3').val(clamp(adjustRcRate(rc),0,2.40)).change();
                      $('#bfExpo3').val(clamp(updateExpo(rc,otxNegExpo3,Slope3),-0.01,1)).change();
                      $('#bfSuper3').val(clamp(updateSuperRate(rc,Maxdeg3),0,1)).change();
-                     $('#bfRateSlider3').val(clamp(adjustRcRate(rc),0,2.18)).change();
+                     $('#bfRateSlider3').val(clamp(adjustRcRate(rc),0,2.40)).change();
                      $('#bfExpoSlider3').val(clamp(updateExpo(rc,otxNegExpo3,Slope3),-0.01,1)).change();
                      $('#bfSuperSlider3').val(clamp(updateSuperRate(rc,Maxdeg3),0,1)).change();
 
                 }
 
-                bfRate1 = clamp(parseFloat($('#bfRate1').val(), 10),0,2.18);
+                bfRate1 = clamp(parseFloat($('#bfRate1').val(), 10),0,2.40);
                 bfExpo1 = clamp(parseFloat($('#bfExpo1').val(), 10),-0.01,1);
                 bfSuper1 = clamp(parseFloat($('#bfSuper1').val(), 10),0,1);
                 otxNegExpo1 = clamp(parseFloat($('#otxNegExpo1').val(), 10),-1,0.999);
@@ -294,7 +345,7 @@
                     otxNegExpo2 = clamp(parseFloat($('#otxNegExpo2').val(), 10),-1,0.999);
                 }
 
-                bfRate3 = clamp(parseFloat($('#bfRate3').val(), 10),0,2.18);
+                bfRate3 = clamp(parseFloat($('#bfRate3').val(), 10),0,2.40);
                 bfExpo3 = clamp(parseFloat($('#bfExpo3').val(), 10),-0.01,1);
                 bfSuper3 = clamp(parseFloat($('#bfSuper3').val(), 10),0,1);
                 otxNegExpo3 = clamp(parseFloat($('#otxNegExpo3').val(), 10),-1,0.999);
@@ -511,10 +562,10 @@
             //Convert rates
             var convertRoll = function(){
                 toBf = rcConvert1(rfRateSet[0], rfRateSet[1], rfRateSet[2], clamp(parseFloat($('#otxNegExpo1').val(), 10),-1,0.999));
-                $('#bfRate1').val(clamp(adjustRcRate(toBf[0]),0,2.18)).change();
+                $('#bfRate1').val(clamp(adjustRcRate(toBf[0]),0,2.40)).change();
                 $('#bfExpo1').val(clamp(Math.round(toBf[2]*100)/100,-0.01,1)).change();
                 $('#bfSuper1').val(clamp(Math.round(toBf[1]*100)/100,0,1)).change();
-                $('#bfRateSlider1').val(clamp(adjustRcRate(toBf[0]),0,2.18)).change();
+                $('#bfRateSlider1').val(clamp(adjustRcRate(toBf[0]),0,2.40)).change();
                 $('#bfExpoSlider1').val(clamp(toBf[2],-0.01,1)).change();
                 $('#bfSuperSlider1').val(clamp(toBf[1],0,1)).change();
                 drawChart(0);
@@ -522,10 +573,10 @@
 
             var convertYaw = function(){
                 toBf = rcConvert1(rfRateSet[0], rfRateSet[1], rfRateSet[2], clamp(parseFloat($('#otxNegExpo3').val(), 10),-1,0.999));
-                $('#bfRate3').val(clamp(adjustRcRate(toBf[0]),0,2.18)).change();
+                $('#bfRate3').val(clamp(adjustRcRate(toBf[0]),0,2.40)).change();
                 $('#bfExpo3').val(clamp(Math.round(toBf[2]*100)/100,-0.01,1)).change();
                 $('#bfSuper3').val(clamp(Math.round(toBf[1]*100)/100,0,1)).change();
-                $('#bfRateSlider3').val(clamp(adjustRcRate(toBf[0]),0,2.18)).change();
+                $('#bfRateSlider3').val(clamp(adjustRcRate(toBf[0]),0,2.40)).change();
                 $('#bfExpoSlider3').val(clamp(toBf[2],-0.01,1)).change();
                 $('#bfSuperSlider3').val(clamp(toBf[1],0,1)).change();
                 drawChart(0);
