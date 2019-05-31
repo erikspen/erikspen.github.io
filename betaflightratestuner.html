@@ -94,14 +94,7 @@
                         for (var p=0.01; p<1; p+=0.01){
                             error_1 +=  (1-p)*Math.abs(bfcalc(expo_otx_calc(p,expo_otx), adjustRcRateUnrounded(rcRate), expo_i, superRate)-rfcalc(p, rcRate_rf, expo_rf, superRate_rf));
                         }
-                        if (error_2>0){
-                            if (error_1 >= error_2){
-                                //if getting worse, quit
-                                break
-                            } else {
-                                expo=expo_i;
-                            }
-                        } else {
+                        if (error_1 <= error_2){
                             expo=expo_i;
                         }
                         error_2=error_1;
@@ -171,14 +164,7 @@
                         for (var p=0.01; p<1; p+=0.01){
                             error_1 +=  (1-p)*Math.abs(bfcalc(expo_otx_calc(p,expo_otx), adjustRcRateUnrounded(rcRate), expo, superRate)-rfcalc(p, rcRate_rf, expo_rf_i, superRate_rf));
                         }
-                        if (error_2>0){
-                            if (error_1 >= error_2){
-                                //if getting worse, quit
-                                break
-                            } else {
-                                expo_rf=expo_rf_i;
-                            }
-                        } else {
+                        if (error_1 <= error_2){
                             expo_rf=expo_rf_i;
                         }
                         error_2=error_1;
@@ -186,11 +172,11 @@
                 }
 
                 if (expo_otx==0){
-                    rcRate_rf = (20000*rcRate*(expo - 1))/(expo_rf_i - 100);
+                    rcRate_rf = (20000*rcRate*(expo - 1))/(expo_rf - 100);
                 } else if (expo_otx<0){
-                    rcRate_rf = -(20000*rcRate*(2*expo_otx - 1)*(expo - 1))/(expo_rf_i - 100);
+                    rcRate_rf = -(20000*rcRate*(2*expo_otx - 1)*(expo - 1))/(expo_rf - 100);
                 } else {
-                    rcRate_rf = -(20000*rcRate*(expo - 1)*(expo_otx - 1))/(expo_rf_i - 100);
+                    rcRate_rf = -(20000*rcRate*(expo - 1)*(expo_otx - 1))/(expo_rf - 100);
                 }
 
                 superRate_rf = -(100*(rcRate_rf + (200*rcRate)/(superRate - 1)))/rcRate_rf;
