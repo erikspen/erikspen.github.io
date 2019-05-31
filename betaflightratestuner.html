@@ -79,8 +79,24 @@
                 var error_1=0;
                 var error_2=-1;
                 var w;
-                rscale=(fittype==3)?(1.1):(1);
-                rscale=(fittype==4)?(0.9):(rscale);
+                switch (fittype){
+                        case '3':
+                        rscale=1.1;
+                        break
+                        case '4':
+                        rscale=0.9;
+                        break
+                        case '5':
+                        rscale=1.2;
+                        break
+                        case '6':
+                        rscale=0.8;
+                        break
+                        default:
+                        rscale=1.0;
+                }
+                console.log(fittype)
+                console.log(rscale)
                 
                 for (var expo_i = 0.00; expo_i < 1; expo_i+=0.01){
                     if (expo_otx==0){
@@ -154,8 +170,25 @@
                 var error_1=0;
                 var error_2=-1;
                 var w;
-                rscale=(fittype==3)?(1.1):(1);
-                rscale=(fittype==4)?(0.9):(rscale);
+                
+                switch (fittype){
+                        case '3':
+                        rscale=1.1;
+                        break
+                        case '4':
+                        rscale=0.9;
+                        break
+                        case '5':
+                        rscale=1.2;
+                        break
+                        case '6':
+                        rscale=0.8;
+                        break
+                        default:
+                        rscale=1.0;
+                }
+                console.log(fittype)
+                console.log(rscale)
                 
                 for (var expo_rf_i = 0.00; expo_rf_i < 100; expo_rf_i+=1){
                     if (expo_otx==0){
@@ -1130,8 +1163,10 @@
                         <option value="0" title="Hard-coded equations for matching center-stick shape.">1-Center Slope, Exact-Reversible</option>
                         <option value="1" title="Heavily weighted towards matching center-stick shape.">2-Center Slope, Weighted</option>
                         <option value="2" title="Uniform weighting on error between Betaflight and Raceflight.">3-Uniform Weighting</option>
-                        <option value="3" title="Applies 10% higher starting slope, as this may allow better overall fit.">4-Slope+, Uniform</option>
-                        <option value="4" title="Applies 10% lower starting slope, as this may allow better overall fit.">5-Slope-, Uniform</option>
+                        <option value="3" title="Applies 10% higher starting slope, as this may allow better overall fit, sacrificing center-stick feel.">4-Slope+, Uniform</option>
+                        <option value="4" title="Applies 10% lower starting slope, as this may allow better overall fit, sacrificing center-stick feel.">5-Slope-, Uniform</option>
+                        <option value="5" title="Applies 20% higher starting slope, as this may allow better overall fit, sacrificing center-stick feel.">4-Slope++, Uniform</option>
+                        <option value="6" title="Applies 20% lower starting slope, as this may allow better overall fit, sacrificing center-stick feel.">5-Slope--, Uniform</option>
                     </select> 
                     <span style="padding:0 1.5em 0 1.5em"><a href="#" title="Using these Raceflight rates, converts and copies to Betaflight/Roll rates above." onclick="convertRoll(); return false;">&#10532; Roll</a></span><span style="padding:0 0 1.5em 0"><a href="#" title="Using these Raceflight rates, converts and copies to Betaflight/Yaw rates above." onclick="convertYaw(); return false;">&#10532; Yaw</a></span>
                 </div>
@@ -1141,8 +1176,10 @@
                         <option value="0" title="Hard-coded equations for matching center-stick shape.">1-Center Slope, Exact-Reversible</option>
                         <option value="1" title="Heavily weighted towards matching center-stick shape.">2-Center Slope, Weighted</option>
                         <option value="2" title="Uniform weighting on error between Betaflight and Raceflight.">3-Uniform Weighting</option>
-                        <option value="3" title="Applies 10% higher starting slope, as this may allow better overall fit.">4-Slope+, Uniform</option>
-                        <option value="4" title="Applies 10% lower starting slope, as this may allow better overall fit.">5-Slope-, Uniform</option>
+                        <option value="3" title="Applies 10% higher starting slope, as this may allow better overall fit, sacrificing center-stick feel.">4-Slope+, Uniform</option>
+                        <option value="4" title="Applies 10% lower starting slope, as this may allow better overall fit, sacrificing center-stick feel.">5-Slope-, Uniform</option>
+                        <option value="5" title="Applies 20% higher starting slope, as this may allow better overall fit, sacrificing center-stick feel.">4-Slope++, Uniform</option>
+                        <option value="6" title="Applies 20% lower starting slope, as this may allow better overall fit, sacrificing center-stick feel.">5-Slope--, Uniform</option>
                     </select> 
                     <span style="padding:0 1.5em 0 1.5em"><a href="#" title="Using Betaflight/Roll rates above, converts and copies to the Raceflight rates listed here" onclick="convertRoll2RF(); return false;">&#10534; Roll</a></span><span style="padding:0 0 1em 0"><a href="#" title="Using Betaflight/Yaw rates above, converts and copies to the Raceflight rates listed here" onclick="convertYaw2RF(); return false;">&#10534; Yaw</a></span>
                 </div>
@@ -1162,6 +1199,7 @@
                     <li><b>Shape</b> interpolates between a curve based on Super Rate, and a curve based on Expo.  While adjusting, Slope and Max deg/s are unaffected.</li>
                     <li><b>OpenTX Expo</b> refers to the expo curve on an Open TX-based tranmitter--<u><i>typically zero.</i></u>.  <i>Negative</i> <b>OpenTX Expo</b> adds a few possibilities for adjust curve shape.</li>
                     <li>If <b>Super Rate</b> value is red in color, a negative <b>OpenTX Expo</b> is causing a non-increasing slope.  To resolve, <b>Super Rate</b> should be increased.</li>
+                    <li>The Raceflight<->Betaflight conversions offered above all try preserving center-stick feel to varying degrees.  If you notice a better fit for one of the Slope++/-- options, then an improved overall fit may be available when constraints on matching center-stick shape are relaxed; see links below for additional Raceflight<->Betaflight conversions.</li>
                 </ul>
                 <h3>Plot checkboxes</h3>
                 <ul>
