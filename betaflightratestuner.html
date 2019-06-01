@@ -68,8 +68,8 @@
                     expo = -(10000*expo_rf - 1000000*expo_otx + 100*expo_rf*superRate_rf - 10000*expo_otx*superRate_rf + expo_rf*superRate_rf**2 - 100*superRate_rf**2)/((superRate_rf + 100)*(10000*expo_otx + 100*superRate_rf - expo_rf*superRate_rf - 10000));
                 }
 
-                if (rcRate<0 || superRate<0 || superRate>1 || expo<0 || expo>1){
-                    return rcConvert11(rcRate_rf, expo_rf, superRate_rf, expo_otx);
+                if (rcRate<0 || rcRate>12.6142 || superRate<0 || superRate>1 || expo<0 || expo>1){
+                    return rcConvert11(rcRate_rf, expo_rf, superRate_rf, expo_otx,1);
                 } else {
                     return [rcRate,superRate,expo]
                 } 
@@ -78,60 +78,63 @@
             var rcConvert11 = function(rcRate_rf, expo_rf, superRate_rf, expo_otx,fittype) {
                 var error_1=0;
                 var error_2=-1;
+                var rscl_f=1;
+                var super_f=0;
                 var w;
                 switch (fittype){
                         case '3':
                         rscale=1.1;
                         break
                         case '4':
-                        rscale=0.9;
-                        break
-                        case '5':
-                        rscale=1.2;
-                        break
-                        case '6':
-                        rscale=0.8;
+                        rscale=2;
                         break
                         default:
                         rscale=1.0;
                 }
-                console.log(fittype)
-                console.log(rscale)
                 
-                for (var expo_i = 0.00; expo_i < 1; expo_i+=0.01){
-                    if (expo_otx==0){
-                        rcRate = rscale*(rcRate_rf*(expo_rf - 100))/(100*(200*expo_i - 200));
-                    } else if (expo_otx<0){
-                        rcRate = -rscale*(rcRate_rf*(expo_rf - 100))/(20000*(2*expo_otx - 1)*(expo_i - 1));
-                    } else {
-                        rcRate = -rscale*(rcRate_rf*(expo_rf - 100))/(20000*(expo_i - 1)*(expo_otx - 1));
-                    }
-                    //rcRate = unadjustedRcRate(adjustRcRate(rcRate));
-                    superRate = 1-(20000*rcRate)/(rcRate_rf*(superRate_rf + 100));
-                    if (rcRate>0 && superRate<1 && superRate>=0){
-                        error_1=0;
-                        for (var p=0.01; p<1; p+=0.01){
-                            w=(fittype==1)?(1-p)**2/p:(1);
-                            error_1 +=  w*Math.abs(bfcalc(expo_otx_calc(p,expo_otx), adjustRcRateUnrounded(rcRate), expo_i, superRate)-rfcalc(p, rcRate_rf, expo_rf, superRate_rf));
+                for (var rscl=2-rscale; rscl<=rscale;rscl+=(rscale-1)/40){
+                    for (var expo_i = 0.00; expo_i < 1; expo_i+=0.01){
+                        if (expo_otx==0){
+                            rcRate = rscl*(rcRate_rf*(expo_rf - 100))/(100*(200*expo_i - 200));
+                        } else if (expo_otx<0){
+                            rcRate = -rscl*(rcRate_rf*(expo_rf - 100))/(20000*(2*expo_otx - 1)*(expo_i - 1));
+                        } else {
+                            rcRate = -rscl*(rcRate_rf*(expo_rf - 100))/(20000*(expo_i - 1)*(expo_otx - 1));
                         }
-                        if (error_1 <= error_2){
-                            expo=expo_i;
+                        rcRate = unadjustedRcRate(adjustRcRate(rcRate));
+                        
+                        superRate = 1-(20000*rcRate)/(rcRate_rf*(superRate_rf + 100));
+
+                        for (var superOffset=-0.03; superOffset<=0.03; superOffset+=0.01){
+                            if (rcRate>0 && rcRate<=12.6142 && superRate+superOffset<1 && superRate+superOffset>=0){
+                                error_1=0;
+                                for (var p=0.01; p<1; p+=0.04){
+                                    w=(fittype==1)?(1-p)**2/p:(1);
+                                    error_1 +=  w*Math.abs(bfcalc(expo_otx_calc(p,expo_otx), adjustRcRateUnrounded(rcRate), expo_i, superRate+superOffset)-rfcalc(p, rcRate_rf, expo_rf, superRate_rf));
+                                }
+                                if (error_2==-1 || error_1 <= error_2){
+                                    expo=expo_i;
+                                    rscl_f=rscl;
+                                    super_f=superRate+superOffset;
+                                    error_2=error_1;
+                                }
+                            }
                         }
-                        error_2=error_1;
                     }
+                    if (rscale==1)
+                        break
                 }
 
                 if (expo_otx==0){
-                    rcRate = rscale*(rcRate_rf*(expo_rf - 100))/(100*(200*expo - 200));
+                    rcRate = rscl_f*(rcRate_rf*(expo_rf - 100))/(100*(200*expo - 200));
                 } else if (expo_otx<0){
-                    rcRate = -rscale*(rcRate_rf*(expo_rf - 100))/(20000*(2*expo_otx - 1)*(expo - 1));
+                    rcRate = -rscl_f*(rcRate_rf*(expo_rf - 100))/(20000*(2*expo_otx - 1)*(expo - 1));
                 } else {
-                    rcRate = -rscale*(rcRate_rf*(expo_rf - 100))/(20000*(expo - 1)*(expo_otx - 1));
+                    rcRate = -rscl_f*(rcRate_rf*(expo_rf - 100))/(20000*(expo - 1)*(expo_otx - 1));
                 }
                 rcRate = unadjustedRcRate(adjustRcRate(rcRate));
-                superRate = 1-(20000*rcRate)/(rcRate_rf*(superRate_rf + 100));
                 
-                return [rcRate,superRate,expo]
+                return [rcRate,super_f,expo]
             }
 
             //Betaflight --> Race flight
@@ -154,8 +157,8 @@
                     expo_rf = 50*expo + 50*expo_otx + 50*superRate - 50*expo*expo_otx - 50*expo*superRate - 50*expo_otx*superRate + 50*expo_otx*((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) - 50*((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) + 50*expo*expo_otx*superRate + 50;
                 }
 
-                if (rcRate_rf<=0 || superRate_rf<0 || expo_rf<0 || expo_rf>=100){
-                    return rcConvert22(rcRate_rf, expo_rf, superRate_rf, expo_otx);
+                if (rcRate_rf<=0 || rcRate_rf>2500 || superRate_rf<0 || expo_rf<0 || expo_rf>=100){
+                    return rcConvert22(rcRate_rf, expo_rf, superRate_rf, expo_otx,1);
                 } else {
                     return [rcRate_rf,superRate_rf,expo_rf]
                 }
@@ -169,6 +172,8 @@
 
                 var error_1=0;
                 var error_2=-1;
+                var rscl_f=1;
+                var super_f=0;
                 var w;
                 
                 switch (fittype){
@@ -176,53 +181,53 @@
                         rscale=1.1;
                         break
                         case '4':
-                        rscale=0.9;
-                        break
-                        case '5':
-                        rscale=1.2;
-                        break
-                        case '6':
-                        rscale=0.8;
+                        rscale=2;
                         break
                         default:
                         rscale=1.0;
                 }
-                console.log(fittype)
-                console.log(rscale)
                 
-                for (var expo_rf_i = 0.00; expo_rf_i < 100; expo_rf_i+=1){
-                    if (expo_otx==0){
-                        rcRate_rf = rscale*(20000*rcRate*(expo - 1))/(expo_rf_i - 100);
-                    } else if (expo_otx<0){
-                        rcRate_rf = -rscale*(20000*rcRate*(2*expo_otx - 1)*(expo - 1))/(expo_rf_i - 100);
-                    } else {
-                        rcRate_rf = -rscale*(20000*rcRate*(expo - 1)*(expo_otx - 1))/(expo_rf_i - 100);
-                    }
-                    superRate_rf = -(100*(rcRate_rf + (200*rcRate)/(superRate - 1)))/rcRate_rf;
-                    if (rcRate_rf>0 && superRate_rf>0){
-                        error_1=0;
-                        for (var p=0.01; p<1; p+=0.01){
-                            w=(fittype==1)?(1-p)**2/p:(1);
-                            error_1 +=  w*Math.abs(bfcalc(expo_otx_calc(p,expo_otx), adjustRcRateUnrounded(rcRate), expo, superRate)-rfcalc(p, rcRate_rf, expo_rf_i, superRate_rf));
+                for (var rscl=2-rscale; rscl<=rscale;rscl+=(rscale-1)/40){
+                    for (var expo_rf_i = 0.00; expo_rf_i < 100; expo_rf_i+=1){
+                        if (expo_otx==0){
+                            rcRate_rf = rscl*(20000*rcRate*(expo - 1))/(expo_rf_i - 100);
+                        } else if (expo_otx<0){
+                            rcRate_rf = -rscl*(20000*rcRate*(2*expo_otx - 1)*(expo - 1))/(expo_rf_i - 100);
+                        } else {
+                            rcRate_rf = -rscl*(20000*rcRate*(expo - 1)*(expo_otx - 1))/(expo_rf_i - 100);
                         }
-                        if (error_1 <= error_2){
-                            expo_rf=expo_rf_i;
+                            
+                        superRate_rf = -(100*(rcRate_rf + (200*rcRate)/(superRate - 1)))/rcRate_rf;
+
+                        for (var superOffset=-10; superOffset<=10; superOffset+=1){
+                            if (rcRate_rf>0 && rcRate_rf<=2500 && superRate_rf+superOffset>0){
+                                error_1=0;
+                                for (var p=0.01; p<1; p+=0.04){
+                                    w=(fittype==1)?(1-p)**2/p:(1);
+                                    error_1 +=  w*Math.abs(bfcalc(expo_otx_calc(p,expo_otx), adjustRcRateUnrounded(rcRate), expo, superRate)-rfcalc(p, rcRate_rf, expo_rf_i, superRate_rf+superOffset));
+                                }
+                                if (error_2==-1 || error_1 <= error_2){
+                                    expo_rf=expo_rf_i;
+                                    rscl_f=rscl;
+                                    super_f=superRate_rf+superOffset;
+                                    error_2=error_1;
+                                }
+                            }
                         }
-                        error_2=error_1;
                     }
+                    if (rscale==1)
+                        break
                 }
 
                 if (expo_otx==0){
-                    rcRate_rf = rscale*(20000*rcRate*(expo - 1))/(expo_rf - 100);
+                    rcRate_rf = rscl_f*(20000*rcRate*(expo - 1))/(expo_rf - 100);
                 } else if (expo_otx<0){
-                    rcRate_rf = -rscale*(20000*rcRate*(2*expo_otx - 1)*(expo - 1))/(expo_rf - 100);
+                    rcRate_rf = -rscl_f*(20000*rcRate*(2*expo_otx - 1)*(expo - 1))/(expo_rf - 100);
                 } else {
-                    rcRate_rf = -rscale*(20000*rcRate*(expo - 1)*(expo_otx - 1))/(expo_rf - 100);
+                    rcRate_rf = -rscl_f*(20000*rcRate*(expo - 1)*(expo_otx - 1))/(expo_rf - 100);
                 }
-
-                superRate_rf = -(100*(rcRate_rf + (200*rcRate)/(superRate - 1)))/rcRate_rf;
                 
-                return [rcRate_rf,superRate_rf,expo_rf]
+                return [rcRate_rf,super_f,expo_rf]
             }
 
             //Open TX expo function
@@ -709,7 +714,50 @@
                 $('#rfSuper').val(Math.round(toRf[1])).change();
                 $('#rfExpo').val(Math.round(toRf[2])).change();
                 drawChart(0);
-            } 
+            }
+
+            //fit error calc
+            var rollError = function(){
+                var errorSum=0
+                var error_i;
+                var rcRate=parseFloat($('#bfRate1').val(), 10);
+                var expo=parseFloat($('#bfExpo1').val(), 10);
+                var superRate=parseFloat($('#bfSuper1').val(), 10);
+                var expo_otx=clamp(parseFloat($('#otxNegExpo1').val(), 10),-1,0.999);
+
+                max_error=0;
+                for (var p=0.0; p<=1; p+=0.0005){
+                    error_i =  Math.abs(bfcalc(expo_otx_calc(p,expo_otx),rcRate , expo, superRate)-rfcalc(p, rfRateSet[0], rfRateSet[1], rfRateSet[2]));
+                    errorSum += error_i;
+                    if (error_i>max_error)
+                        max_error=error_i;
+                }
+                console.log('Average error over 2000 pts:')
+                console.log(errorSum/2000)
+                console.log('Maximum error over 2000 pts:')
+                console.log(max_error)
+            }
+
+            var yawError = function(){
+                var errorSum=0
+                var error_i;
+                var rcRate=parseFloat($('#bfRate3').val(), 10);
+                var expo=parseFloat($('#bfExpo3').val(), 10);
+                var superRate=parseFloat($('#bfSuper3').val(), 10);
+                var expo_otx=clamp(parseFloat($('#otxNegExpo3').val(), 10),-1,0.999);
+
+                max_error=0;
+                for (var p=0.0; p<=1; p+=0.0005){
+                    error_i =  Math.abs(bfcalc(expo_otx_calc(p,expo_otx), rcRate , expo, superRate)-rfcalc(p, rfRateSet[0], rfRateSet[1], rfRateSet[2]));
+                    errorSum += error_i;
+                    if (error_i>max_error)
+                        max_error=error_i;
+                }
+                console.log('Average error over 2000 pts:')
+                console.log(errorSum/2000)
+                console.log('Maximum error over 2000 pts:')
+                console.log(max_error)
+            }
 
             $( document ).ready(function() {
                 google.charts.load('current', {'packages':['corechart']});
@@ -1160,26 +1208,20 @@
                 <div style="padding:2em 0 0 0;">
                     <b>Raceflight > Betaflight</b>, Method 
                     <select id="r2b">
-                        <option value="0" title="Hard-coded equations for matching center-stick shape.">1-Center Slope, Exact-Reversible</option>
-                        <option value="1" title="Heavily weighted towards matching center-stick shape.">2-Center Slope, Weighted</option>
-                        <option value="2" title="Uniform weighting on error between Betaflight and Raceflight.">3-Uniform Weighting</option>
-                        <option value="3" title="Applies 10% higher starting slope, as this may allow better overall fit, sacrificing center-stick feel.">4-Slope+, Uniform</option>
-                        <option value="4" title="Applies 10% lower starting slope, as this may allow better overall fit, sacrificing center-stick feel.">5-Slope-, Uniform</option>
-                        <option value="5" title="Applies 20% higher starting slope, as this may allow better overall fit, sacrificing center-stick feel.">4-Slope++, Uniform</option>
-                        <option value="6" title="Applies 20% lower starting slope, as this may allow better overall fit, sacrificing center-stick feel.">5-Slope--, Uniform</option>
-                    </select> 
+                        <option value="4" title="Searches for best fit, initial slope within +/-50%.">1-Wide search</option>
+                        <option value="3" title="Searches for best fit, initial slope within +/-10%.">2-Narrow search</option>
+                        <option value="2" title="Exactly matches intended center-stick slope.">3-Center-fit (weighted)</option>
+                        <option value="0" title="Closed-form conversion matching center-stick slope & derivative.">3-Center-fit (exact)</option>
+                    </select>
                     <span style="padding:0 1.5em 0 1.5em"><a href="#" title="Using these Raceflight rates, converts and copies to Betaflight/Roll rates above." onclick="convertRoll(); return false;">&#10532; Roll</a></span><span style="padding:0 0 1.5em 0"><a href="#" title="Using these Raceflight rates, converts and copies to Betaflight/Yaw rates above." onclick="convertYaw(); return false;">&#10532; Yaw</a></span>
                 </div>
                 <div style="padding:2em 0 0 0;">
                     <b>Betaflight > Raceflight</b>, Method 
                     <select id="b2r">
-                        <option value="0" title="Hard-coded equations for matching center-stick shape.">1-Center Slope, Exact-Reversible</option>
-                        <option value="1" title="Heavily weighted towards matching center-stick shape.">2-Center Slope, Weighted</option>
-                        <option value="2" title="Uniform weighting on error between Betaflight and Raceflight.">3-Uniform Weighting</option>
-                        <option value="3" title="Applies 10% higher starting slope, as this may allow better overall fit, sacrificing center-stick feel.">4-Slope+, Uniform</option>
-                        <option value="4" title="Applies 10% lower starting slope, as this may allow better overall fit, sacrificing center-stick feel.">5-Slope-, Uniform</option>
-                        <option value="5" title="Applies 20% higher starting slope, as this may allow better overall fit, sacrificing center-stick feel.">4-Slope++, Uniform</option>
-                        <option value="6" title="Applies 20% lower starting slope, as this may allow better overall fit, sacrificing center-stick feel.">5-Slope--, Uniform</option>
+                        <option value="4" title="Searches for best fit, initial slope within +/-50%.">1-Wide search</option>
+                        <option value="3" title="Searches for best fit, initial slope within +/-10%.">2-Narrow search</option>
+                        <option value="2" title="Exactly matches intended center-stick slope.">3-Center-fit (weighted)</option>
+                        <option value="0" title="Closed-form conversion matching center-stick slope & derivative.">3-Center-fit (exact)</option>
                     </select> 
                     <span style="padding:0 1.5em 0 1.5em"><a href="#" title="Using Betaflight/Roll rates above, converts and copies to the Raceflight rates listed here" onclick="convertRoll2RF(); return false;">&#10534; Roll</a></span><span style="padding:0 0 1em 0"><a href="#" title="Using Betaflight/Yaw rates above, converts and copies to the Raceflight rates listed here" onclick="convertYaw2RF(); return false;">&#10534; Yaw</a></span>
                 </div>
