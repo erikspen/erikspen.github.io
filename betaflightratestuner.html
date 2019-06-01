@@ -1211,7 +1211,7 @@
                         <option value="4" title="Searches for best fit, initial slope within +/-50%.">1-Wide search</option>
                         <option value="3" title="Searches for best fit, initial slope within +/-10%.">2-Narrow search</option>
                         <option value="2" title="Exactly matches intended center-stick slope.">3-Center-fit (weighted)</option>
-                        <option value="0" title="Closed-form conversion matching center-stick slope & derivative.">3-Center-fit (exact)</option>
+                        <option value="0" title="Closed-form conversion matching center-stick slope & derivative.">4-Center-fit (exact)</option>
                     </select>
                     <span style="padding:0 1.5em 0 1.5em"><a href="#" title="Using these Raceflight rates, converts and copies to Betaflight/Roll rates above." onclick="convertRoll(); return false;">&#10532; Roll</a></span><span style="padding:0 0 1.5em 0"><a href="#" title="Using these Raceflight rates, converts and copies to Betaflight/Yaw rates above." onclick="convertYaw(); return false;">&#10532; Yaw</a></span>
                 </div>
@@ -1221,7 +1221,7 @@
                         <option value="4" title="Searches for best fit, initial slope within +/-50%.">1-Wide search</option>
                         <option value="3" title="Searches for best fit, initial slope within +/-10%.">2-Narrow search</option>
                         <option value="2" title="Exactly matches intended center-stick slope.">3-Center-fit (weighted)</option>
-                        <option value="0" title="Closed-form conversion matching center-stick slope & derivative.">3-Center-fit (exact)</option>
+                        <option value="0" title="Closed-form conversion matching center-stick slope & derivative.">4-Center-fit (exact)</option>
                     </select> 
                     <span style="padding:0 1.5em 0 1.5em"><a href="#" title="Using Betaflight/Roll rates above, converts and copies to the Raceflight rates listed here" onclick="convertRoll2RF(); return false;">&#10534; Roll</a></span><span style="padding:0 0 1em 0"><a href="#" title="Using Betaflight/Yaw rates above, converts and copies to the Raceflight rates listed here" onclick="convertYaw2RF(); return false;">&#10534; Yaw</a></span>
                 </div>
@@ -1241,7 +1241,6 @@
                     <li><b>Shape</b> interpolates between a curve based on Super Rate, and a curve based on Expo.  While adjusting, Slope and Max deg/s are unaffected.</li>
                     <li><b>OpenTX Expo</b> refers to the expo curve on an Open TX-based tranmitter--<u><i>typically zero.</i></u>.  <i>Negative</i> <b>OpenTX Expo</b> adds a few possibilities for adjust curve shape.</li>
                     <li>If <b>Super Rate</b> value is red in color, a negative <b>OpenTX Expo</b> is causing a non-increasing slope.  To resolve, <b>Super Rate</b> should be increased.</li>
-                    
                 </ul>
                 <h3>Plot checkboxes</h3>
                 <ul>
