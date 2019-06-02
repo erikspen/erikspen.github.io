@@ -1294,22 +1294,22 @@
                 <div style="padding:2em 0 0 0;">
                     <b>Raceflight > Betaflight</b>, Method 
                     <select id="r2b">
-                        <option value="4" title="Searches for best fit, initial slope within +/-50%.">1-Wide search (min avg error)</option>
-                        <option value="5" title="Searches for best fit, initial slope within +/-50%.">2-Wide search (min max error)</option>
-                        <option value="3" title="Searches for best fit, initial slope within +/-10%.">3-Narrow search (min avg error)</option>
-                        <option value="2" title="Exactly matches intended center-stick slope.">4-Center-fit (min avg error)</option>
-                        <option value="0" title="Closed-form conversion matching center-stick slope & derivative.">5-Center-fit (exact)</option>
+                        <option value="4" title="Searches for best fit (minimum avg. error), initial slope within +/-50%.">1-Wide search</option>
+                        <option value="3" title="Searches for best fit (minimum avg. error), initial slope within +/-10%.">3-Narrow search</option>
+                        <option value="5" title="Searches fit with for lowest maximum error, initial slope wining +/- 50% (SLOW)">2-Lowest Error</option>
+                        <option value="2" title="Searches for best fit (minimum avg. error), constrained to match initial slope.">4-Center-match /1</option>
+                        <option value="0" title="Uses closed-form equation to convert rates, matching center-stick slope, slope derivative, and Max deg/s.">5-Center-match /2</option>
                     </select>
                     <span style="padding:0 1.5em 0 1.5em"><a href="#" title="Using these Raceflight rates, converts and copies to Betaflight/Roll rates above." onclick="convertRoll(); return false;">&#10532; Roll</a></span><span style="padding:0 0 1.5em 0"><a href="#" title="Using these Raceflight rates, converts and copies to Betaflight/Yaw rates above." onclick="convertYaw(); return false;">&#10532; Yaw</a></span>
                 </div>
                 <div style="padding:2em 0 0 0;">
                     <b>Betaflight > Raceflight</b>, Method 
                     <select id="b2r">
-                        <option value="4" title="Searches for best fit, initial slope within +/-50%.">1-Wide search (min avg error)</option>
-                        <option value="5" title="Searches for best fit, initial slope within +/-50%.">2-Wide search (min max error)</option>
-                        <option value="3" title="Searches for best fit, initial slope within +/-10%.">3-Narrow search (min avg error)</option>
-                        <option value="2" title="Exactly matches intended center-stick slope.">4-Center-fit (min avg error)</option>
-                        <option value="0" title="Closed-form conversion matching center-stick slope & derivative.">5-Center-fit (exact)</option>
+                        <option value="4" title="Searches for best fit (minimum avg. error), initial slope within +/-50%.">1-Wide search</option>
+                        <option value="3" title="Searches for best fit (minimum avg. error), initial slope within +/-10%.">3-Narrow search</option>
+                        <option value="5" title="Searches fit with for lowest maximum error, initial slope wining +/- 50% (SLOW)">2-Lowest Error</option>
+                        <option value="2" title="Searches for best fit (minimum avg. error), constrained to match initial slope.">4-Center-match /1</option>
+                        <option value="0" title="Uses closed-form equation to convert rates, matching center-stick slope, slope derivative, and Max deg/s.">5-Center-match /2</option>
                     </select> 
                     <span style="padding:0 1.5em 0 1.5em"><a href="#" title="Using Betaflight/Roll rates above, converts and copies to the Raceflight rates listed here" onclick="convertRoll2RF(); return false;">&#10534; Roll</a></span><span style="padding:0 0 1em 0"><a href="#" title="Using Betaflight/Yaw rates above, converts and copies to the Raceflight rates listed here" onclick="convertYaw2RF(); return false;">&#10534; Yaw</a></span>
                 </div>
