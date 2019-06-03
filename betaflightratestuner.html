@@ -121,19 +121,19 @@
                                     if (diffType==0){
                                         for (var p=0.01; p<=1+.0005; p+=0.01){
                                             w=(fittype==1)?(1-p)**2/p:(1);
-                                            dr=Math.abs(bfcalc(expo_otx_calc(p,expo_otx), adjustRcRateUnrounded(rcRate), expo_i, superRate+superOffset)-rfcalc(p, rcRate_rf, expo_rf, superRate_rf));
+                                            dr=Math.abs(bfcalc(expo_otx_calc(p,expo_otx), adjustRcRate(rcRate), expo_i, superRate+superOffset)-rfcalc(p, rcRate_rf, expo_rf, superRate_rf));
                                             error_1 +=  w*dr;
                                         }
                                     } else {
                                         var dr_sgn, dr_sgn_last=0, dr_last=-1;
                                         for (var p=0.01; p<=1+.0005; p+=0.01){
-                                            dr=Math.abs(bfcalc(expo_otx_calc(p,expo_otx), adjustRcRateUnrounded(rcRate), expo_i, superRate+superOffset)-rfcalc(p, rcRate_rf, expo_rf, superRate_rf));
+                                            dr=Math.abs(bfcalc(expo_otx_calc(p,expo_otx), adjustRcRate(rcRate), expo_i, superRate+superOffset)-rfcalc(p, rcRate_rf, expo_rf, superRate_rf));
                                             if (dr>drmax1)
                                                 drmax1=dr;
                                             dr_sgn=Math.sign(dr-dr_last);
                                             if (dr_last != -1 && dr_sgn_last != dr_sgn && dr_sgn == -1){
                                                 for (var pp=Math.min(p-0.02+0.0005,0.0005); pp<Math.min(p+0.01,1); pp+=0.0005){
-                                                    drr=Math.abs(bfcalc(expo_otx_calc(pp,expo_otx), adjustRcRateUnrounded(rcRate), expo_i, superRate+superOffset)-rfcalc(pp, rcRate_rf, expo_rf, superRate_rf));
+                                                    drr=Math.abs(bfcalc(expo_otx_calc(pp,expo_otx), adjustRcRate(rcRate), expo_i, superRate+superOffset)-rfcalc(pp, rcRate_rf, expo_rf, superRate_rf));
                                                     if (drr>drmax1)
                                                         drmax1=drr;
                                                 }
@@ -254,19 +254,19 @@
                                     if (diffType==0){
                                         for (var p=0.01; p<=1+.0005; p+=0.01){
                                             w=(fittype==1)?(1-p)**2/p:(1);
-                                            dr=Math.abs(bfcalc(expo_otx_calc(p,expo_otx), adjustRcRateUnrounded(rcRate), expo, superRate)-rfcalc(p, rcRate_rf, expo_rf_i, superRate_rf+superOffset));
+                                            dr=Math.abs(bfcalc(expo_otx_calc(p,expo_otx), adjustRcRate(rcRate), expo, superRate)-rfcalc(p, rcRate_rf, expo_rf_i, superRate_rf+superOffset));
                                             error_1 +=  w*dr;
                                         }
                                     } else {
                                         var dr_sgn, dr_sgn_last=0, dr_last=-1;
                                         for (var p=0.01; p<=1+.0005; p+=0.01){
-                                            dr=Math.abs(bfcalc(expo_otx_calc(p,expo_otx), adjustRcRateUnrounded(rcRate), expo, superRate)-rfcalc(p, rcRate_rf, expo_rf_i, superRate_rf+superOffset));
+                                            dr=Math.abs(bfcalc(expo_otx_calc(p,expo_otx), adjustRcRate(rcRate), expo, superRate)-rfcalc(p, rcRate_rf, expo_rf_i, superRate_rf+superOffset));
                                             if (dr>drmax1)
                                                 drmax1=dr;
                                             dr_sgn=Math.sign(dr-dr_last);
                                             if (dr_last != -1 && dr_sgn_last != dr_sgn && dr_sgn == -1){
                                                 for (var pp=p-0.02+0.005; pp<p+0.01; pp+=0.005){
-                                                    drr=Math.abs(bfcalc(expo_otx_calc(pp,expo_otx), adjustRcRateUnrounded(rcRate), expo, superRate)-rfcalc(pp, rcRate_rf, expo_rf_i, superRate_rf+superOffset));
+                                                    drr=Math.abs(bfcalc(expo_otx_calc(pp,expo_otx), adjustRcRate(rcRate), expo, superRate)-rfcalc(pp, rcRate_rf, expo_rf_i, superRate_rf+superOffset));
                                                     if (drr>drmax1)
                                                         drmax1=drr;
                                                 }
@@ -274,6 +274,10 @@
                                             dr_last=dr;
                                             dr_sgn_last=dr_sgn;
                                         }
+                                        /*if (expo_rf_i==10 && superRate_rf+superOffset == 72 && rcRate_rf==406){
+                                            console.log(adjustRcRate(rcRate))
+                                            console.log(drmax1)
+                                        }*/
                                     }
                                     if (diffType==0 && ( error_2==-1 || error_1 < error_2 )){
                                         expo_rf=expo_rf_i;
@@ -331,10 +335,10 @@
                 return Math.round(100*rcRate)/100
             }
 
-            var adjustRcRateUnrounded = function(rcRate){
+            /*var adjustRcRateUnrounded = function(rcRate){
                 rcRate = Math.min(rcRate,2+(rcRate-2)/14.54);
                 return rcRate
-            }
+            }*/
 
             var unadjustedRcRate = function(rcRate){
                 rcRate = rcRate+Math.max(0,(rcRate-2)*14.54);
@@ -1295,8 +1299,8 @@
                     <b>Raceflight > Betaflight</b>, Method 
                     <select id="r2b">
                         <option value="4" title="Searches for best fit (minimum avg. error), initial slope within +/-50%.">1-Wide search</option>
-                        <option value="3" title="Searches for best fit (minimum avg. error), initial slope within +/-10%.">3-Narrow search</option>
-                        <option value="5" title="Searches fit with for lowest maximum error, initial slope wining +/- 50% (SLOW)">2-Lowest Error</option>
+                        <option value="3" title="Searches for best fit (minimum avg. error), initial slope within +/-10%.">2-Narrow search</option>
+                        <option value="5" title="Searches fit with for lowest maximum error, initial slope wining +/- 50% (SLOW)">3-Lowest Error</option>
                         <option value="2" title="Searches for best fit (minimum avg. error), constrained to match initial slope.">4-Center-match /1</option>
                         <option value="0" title="Uses closed-form equation to convert rates, matching center-stick slope, slope derivative, and Max deg/s.">5-Center-match /2</option>
                     </select>
@@ -1306,8 +1310,8 @@
                     <b>Betaflight > Raceflight</b>, Method 
                     <select id="b2r">
                         <option value="4" title="Searches for best fit (minimum avg. error), initial slope within +/-50%.">1-Wide search</option>
-                        <option value="3" title="Searches for best fit (minimum avg. error), initial slope within +/-10%.">3-Narrow search</option>
-                        <option value="5" title="Searches fit with for lowest maximum error, initial slope wining +/- 50% (SLOW)">2-Lowest Error</option>
+                        <option value="3" title="Searches for best fit (minimum avg. error), initial slope within +/-10%.">2-Narrow search</option>
+                        <option value="5" title="Searches fit with for lowest maximum error, initial slope wining +/- 50% (SLOW)">3-Lowest Error</option>
                         <option value="2" title="Searches for best fit (minimum avg. error), constrained to match initial slope.">4-Center-match /1</option>
                         <option value="0" title="Uses closed-form equation to convert rates, matching center-stick slope, slope derivative, and Max deg/s.">5-Center-match /2</option>
                     </select> 
