@@ -1336,8 +1336,8 @@
                     <li><b>OpenTX Expo</b> refers to the expo curve on an Open TX-based tranmitter--<u><i>typically zero.</i></u>.  <i>Negative</i> <b>OpenTX Expo</b> adds a few interesting possibilities for adjusting curve shape.</li>
                     <li>If <b>Super Rate</b> value is red in color, a negative <b>OpenTX Expo</b> is causing a non-increasing slope.  To resolve, <b>Super Rate</b> should be increased.</li>
                     <li>Checking the <b>Derivative</b>-box plots the change in <b>Slope</b> versus stick position.</li>
-                    <li><b>FlightOne/Raceflight conversion</b> offers fits based on minimizing average error (Methods 1,2,4) or minimizing the single largest error across stick travel (Methd 3).  Methods 1 & 3 constrain the search to fits with an initial slope within +/-50% of the source, whereas Method 2 constrains initial slope to within +/-10%.  Method 5 is based on closed-form equations which exactly match center-stick shape and Max deg/s, but large errors are likely to exist in the middle portion.</li>
-                    <li><b>Method 2</b> (Narrow search) is the recommended method for FlightOne/Raceflight conversion.  Each approach has its drawbacks, but in my opinion, this method is the most likely to preserve the correct "feel".</li>
+                    <li><b>FlightOne/Raceflight conversion</b> offers fits based on minimizing average error (Methods 1,2,4) or minimizing the single largest error across stick travel (Methd 3).  Methods 1 & 3 are constrained to fits within +/-50% of the source initial slope (Wide), whereas Method 2 constrains initial slope to within +/-10% (Narrow).  Method 5 is based on closed-form equations which exactly match center-stick shape and Max deg/s.</li>
+                    <li><b>Method 2</b> (Narrow search) is the recommended method for FlightOne/Raceflight to Betaflight conversion.  Each approach has its drawbacks, but this approach is a good compromise between maintaining center-stick "feel", while not accumulating large errors in the latter portions of stick throw.</li>
                 </ul>
                 <hr>
                 <h3>Links</h3>
