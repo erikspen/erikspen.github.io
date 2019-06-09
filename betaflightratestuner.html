@@ -176,7 +176,7 @@
                             rcRate_u=amplifiedRcRate(rcRate);
                             superRate = Math.round(100*(1-(20000*rcRate_u)/(rcRate_rf*(superRate_rf + 100))))/100;
 
-                            for (var superOffset=-0.04; superOffset<=0.10; superOffset+=0.01){
+                            for (var superOffset=-0.05; superOffset<=0.12; superOffset+=0.01){
                                 if (superRate+superOffset<1 && superRate+superOffset>=0){
                                     error_1=0;
                                     drmax1=0;
@@ -251,7 +251,7 @@
                     expo_rf = 50*expo + 50*expo_otx + 50*superRate - 50*expo*expo_otx - 50*expo*superRate - 50*expo_otx*superRate + 50*expo_otx*((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) - 50*((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) + 50*expo*expo_otx*superRate + 50;
                 }
 
-                if (rcRate_rf<=0 || rcRate_rf>2500 || superRate_rf<0 || expo_rf<0 || expo_rf>=100){
+                if (rcRate_rf<=0 || rcRate_rf>2500 || superRate_rf<0 || expo_rf<0 || expo_rf>100){
                     return rcConvert22(rcRate_rf, expo_rf, superRate_rf, expo_otx,1);
                 } else {
                     return [rcRate_rf,superRate_rf,expo_rf]
@@ -308,7 +308,7 @@
                         
                         superRate_rf = Math.round(-(100*(rcRate_rf + (200*rcRate_u)/(superRate - 1)))/rcRate_rf);
 
-                        for (var superOffset=-12; superOffset<=4; superOffset+=1){
+                        for (var superOffset=-14; superOffset<=5; superOffset+=1){
                             if (superRate_rf+superOffset>0){
                                 error_1=0;
                                 drmax1=0;
@@ -654,10 +654,7 @@
 
                 var stickEnd=1.0;
                 var stickIter=0.01;
-                if (checkOptions[0].checked){
-                    var stickEnd=0.25;
-                    var stickIter=0.0025;
-                } else if (checkOptions[1].checked) {
+                if (checkOptions[0].checked) {
                     var stickEnd=0.5;
                     var stickIter=0.005;
                 }
@@ -682,7 +679,7 @@
                     $('#bfSuper3').css('color','inherit');
                 }
                     
-                if (checkOptions[2].checked){
+                if (checkOptions[1].checked){
                     //derivative
                     for (var i = 0; i <= stickEnd; i+=stickIter) {
                         if (showRf){
@@ -702,7 +699,7 @@
                             ]);
                         }
                     }
-                } else if (checkOptions[3].checked){
+                } else if (checkOptions[2].checked){
                     //2nd derivative
                     for (var i = 0; i <= stickEnd; i+=stickIter) {
                         if (showRf){
@@ -1035,10 +1032,9 @@
                 checkboxCallback();
 
                 //options checkbox
-                checkOptions[0] = document.getElementById("zoom25");
-                checkOptions[1] = document.getElementById("zoom50");
-                checkOptions[2] = document.getElementById("deriv");
-                checkOptions[3] = document.getElementById("deriv2");
+                checkOptions[0] = document.getElementById("zoom50");
+                checkOptions[1] = document.getElementById("deriv");
+                checkOptions[2] = document.getElementById("deriv2");
 
                 $(checkOptions).on('change',function(evt){
                     $(checkOptions).not(evt.target).prop('checked',false);
@@ -1110,18 +1106,18 @@
                         $('#value5').show();
                         setRates( 
                             [1,
-                            .93,0.66,0.0,0,
-                            0.66,0,
-                            1.02,0.47,0.15,0]);
+                            .94,0.67,0.02,0,
+                            0.67,0,
+                            0.89,0.47,0.15,0]);
                         break
 
                         case '6': //vanover (converted)
                         $('#value6').show();
                         setRates( 
                             [1,
-                            1.04,0.66,0.00,0,
-                            0.66,0,
-                            1.04,0.66,0.00,0]);
+                            1.04,0.67,0.00,0,
+                            0.67,0,
+                            1.04,0.67,0.00,0]);
                         break
 
                         case '7': //headsup fpv
@@ -1137,9 +1133,9 @@
                         $('#value8').show();
                         setRates( 
                             [1,
-                            0.73,0.64,0.1,0,
-                            0.64,0,
-                            0.66,0.36,0.1,0]);
+                            0.92,0.56,0.28,0,
+                            0.56,0,
+                            0.63,0.39,0.07,0]);
                         break
 
                         /*case '100': //my rates
@@ -1156,13 +1152,20 @@
                             1.62,0.41,0.48,-0.25, 
                             0.37,-.21,
                             0.78,0.56,0.2,-0.3]);*/
-                        case '100': //my rates
+                        /*case '100': //my rates
                         $('#value100').show();
                         setRates( 
                             [0,
                             1.11,0.59,0.25,-0.25, 
                             0.56,-.21,
-                            0.63,0.65,0.03,-0.25]);
+                            0.63,0.65,0.03,-0.25]);*/
+                        case '100': //my rates
+                        $('#value100').show();
+                        setRates( 
+                            [0,
+                            1.12,0.59,0.25,-0.25, 
+                            0.56,-.21,
+                            0.92,0.34,0.18,-0.25]);
                     }
                         doDraw=true;
                         drawChart();
@@ -1183,7 +1186,6 @@
         <div style="max-width:900px; display:inline-block; vertical-align: top">
             <div id="curve_chart" style="width: 900px; height: 600px; margin-top:-50px"></div>
             <div style="text-align:center; padding-top:50px">
-                <span title="Zoom to first 25% of rate curve"><input id="zoom25" type="checkbox">Zoom 0%-25%</span>
                 <span title="Zoom to first 50% of rate curve"><input id="zoom50" type="checkbox">Zoom 0%-50%</span>
                 <span title="Plot relative change in rate (AKA: slope, sensitivity, commanded acceleration, feed-forward) vs. stick position"><input id="deriv" type="checkbox">Derivative</span>
                 <span title="Plot relative change in slope vs. stick position"><input id="deriv2" type="checkbox">2nd Derivative</span>
@@ -1419,8 +1421,8 @@
                     <li><b>OpenTX Expo</b> refers to the expo curve on an Open TX-based tranmitter--<u><i>typically zero.</i></u>.  <i>Negative</i> <b>OpenTX Expo</b> adds a few interesting possibilities for adjusting curve shape.</li>
                     <li>If <b>Super Rate</b> value is red in color, a negative <b>OpenTX Expo</b> is causing a non-increasing slope.  To resolve, <b>Super Rate</b> should be increased.</li>
                     <li>Checking the <b>Derivative</b>-box plots the change in <b>Slope</b> versus stick position.</li>
-                    <li><b>FlightOne/Raceflight conversion</b> offers fits based on minimizing average error (Methods 1,2,4) or minimizing the single largest error across stick travel (Methd 3).  Methods 1 & 3 are constrained to fits within +/-50% of the source initial slope (Wide), whereas Method 2 constrains initial slope to within +/-10% (Narrow).  Method 5 is based on closed-form equations which exactly match center-stick shape and Max deg/s.</li>
-                    <li><b>Method 2</b> (Narrow search) is the recommended method for FlightOne/Raceflight to Betaflight conversion.  Each approach has its drawbacks, but this approach is a good compromise between maintaining center-stick "feel", while not accumulating large errors in the latter portions of stick throw.</li>
+                    <li><b>FlightOne/Raceflight conversion</b> offers fits based on minimizing average error (Methods 1,2,4) or minimizing the single largest error across stick travel (Methd 3).  Methods 1 & 3 are constrained to fits within +/-50% of the source initial slope, whereas Method 2 constrains initial slope to within +/-10%.  Method 5 is based on closed-form equations which exactly match center-stick shape and Max deg/s.</li>
+                    <li><b>Method 2</b> (Narrow search) is the recommended method for FlightOne/Raceflight to Betaflight conversion.  Each approach has merits and drawbacks, this approach being a good compromise between maintaining center-stick "feel", while not grossly misrepresenting latter portions of the curve.</li>
                 </ul>
                 <hr>
                 <h3>Links</h3>
