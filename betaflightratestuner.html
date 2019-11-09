@@ -678,9 +678,11 @@
                 } else {
                     $('#bfSuper3').css('color','inherit');
                 }
-                    
+
+                var yaxisname='Rate';   
                 if (checkOptions[1].checked){
                     //derivative
+                    yaxisname='Slope of Rate Curve';
                     for (var i = 0; i <= stickEnd; i+=stickIter) {
                         if (showRf){
                             data.addRow([
@@ -701,6 +703,7 @@
                     }
                 } else if (checkOptions[2].checked){
                     //2nd derivative
+                    yaxisname='Acceleration Sensitivity';
                     for (var i = 0; i <= stickEnd; i+=stickIter) {
                         if (showRf){
                             data.addRow([
@@ -754,12 +757,14 @@
                     hAxis: {
                         baselineColor: "#888",
                         gridlines: {color: "#888"},
-                        textStyle: {color: "#888"}
+                        textStyle: {color: "#888"},
+                        title: "Stick position"
                     },
                     vAxis: {
                         baselineColor: "#888",
                         gridlines: {color: "#888"},
-                        textStyle: {color: "#888"}
+                        textStyle: {color: "#888"},
+                        title: yaxisname
                     }
                 };
 
@@ -1138,34 +1143,21 @@
                             0.63,0.39,0.07,0]);
                         break
 
-                        /*case '100': //my rates
-                        $('#value100').show();
+                        case '9': //JohnEFly
+                        $('#value9').show();
+                        setRates( 
+                            [1,
+                            1,0.55,0.1,0,
+                            0.55,0,
+                            1,0.7,0,0]);
+                        break
+                        case '10': 
+                        $('#value10').show();
                         setRates( 
                             [0,
-                            1.59,0.40,0.5,-0.3, 
-                            0.36,-.26,
-                            0.86,0.59,0.2,-0.3]);*/
-                        /*case '100': //my rates
-                        $('#value100').show();
-                        setRates( 
-                            [0,
-                            1.62,0.41,0.48,-0.25, 
-                            0.37,-.21,
-                            0.78,0.56,0.2,-0.3]);*/
-                        /*case '100': //my rates
-                        $('#value100').show();
-                        setRates( 
-                            [0,
-                            1.11,0.59,0.25,-0.25, 
-                            0.56,-.21,
-                            0.63,0.65,0.03,-0.25]);*/
-                        case '100': //my rates
-                        $('#value100').show();
-                        setRates( 
-                            [0,
-                            1.12,0.59,0.25,-0.25, 
-                            0.56,-.21,
-                            0.92,0.34,0.18,-0.25]);
+                            0.95,0.63,0.31,-0.2, 
+                            0.61,-.16,
+                            0.49,0.75,0.0,-0.3]); //-45% throttle
                     }
                         doDraw=true;
                         drawChart();
@@ -1348,7 +1340,8 @@
                     <option value="6">(Racing) Vanover [F1]</option>
                     <option value="7">(Racing) Headsup FPV</option>
                     <option value="8">(Racing) Nytfury [F1]</option>
-                    <option value="100">(Racing) My rates</option>
+                    <option value="9">(Racing) JohnEFly</option>
+                    <option value="10">(Racing) My rates</option>
                 </select> 
                 <div style="text-align: center; width:500px; padding-top:20px; margin-left:auto; margin-right:auto">
                     <span id="value0" style="display:none"></span>
@@ -1361,7 +1354,8 @@
                     <span id="value6" style="display:none">FlightOne: 350-40-75</span>
                     <span id="value7" style="display:none">(<a target="_blank" href="https://www.youtube.com/watch?v=jUpAjoKQOXU">Youtube</a>)</span>
                     <span id="value8" style="display:none">FlightOne: 258-50-58, 147-20-40</span>
-                    <span id="value100" style="display:none"></span>
+                    <span id="value9" style="display:none">(From over 1 year ago)</span>
+                    <span id="value10" style="display:none">Uses negative expo on Open TX transmitter to lower Pitch sensitivity (relative to Roll) and increase Yaw's growth rate & center-stick resolution.</span>
                 </div>
             </div>
         </div>
