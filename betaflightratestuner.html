@@ -1,448 +1,74 @@
 <html>
     <head>
-        <!-- <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script> -->
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-        <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous"> -->
         <link rel="stylesheet" href="betaflight_rates.css">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous">
-
         <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        
+        <script type="text/javascript">
+            //Extend jquery.  Function for reading/writing params to URL
+
+            (function($) {
+                $.QueryString = (function(paramsArray) {
+                    let params = {};
+
+                    for (let i = 0; i < paramsArray.length; ++i)
+                    {
+                        let param = paramsArray[i]
+                            .split('=', 2);
+
+                        if (param.length !== 2)
+                            continue;
+
+                        params[param[0]] = decodeURIComponent(param[1].replace(/\+/g, " "));
+                    }
+
+                    return params;
+                })(window.location.search.substr(1).split('&'))
+            })(jQuery);
+
+            var setObjUrl = function(obj){
+                history.pushState({},'','?'+$.param(obj));
+            }
+
+            var getObjUrl = function(){
+                var objOut={
+                'rc1':1.0,
+                'rc3':1.0,
+                'ex1':0.0,
+                'ex3':0.0,
+                's1':0.7,
+                's2':0.7,
+                's3':0.7,
+                'oex1':0.0,
+                'oex2':0.0,
+                'oex3':0.0};
+                objIn = $.QueryString;
+                $.each(objIn,function(i){
+                    objOut[i]=objIn[i];
+                })
+                return objOut
+            }
+        </script>
 
         <script type="text/javascript">
-
+            //my global vars
             var doDraw=true;
+            var firstDraw=true;
             var checkBox = null;
             var checkOptions = [];
             var showRf=false;
             var rfRateSet = [];
+            var ratesData = [];
+        </script>
 
-            var clamp = function(n, minn, maxn) {
-                if(isNaN(n))
-                    n=0.5;
-                return Math.max(Math.min(maxn, n), minn)
-            }
+        <script type="text/javascript" src="rateCurves.js"></script>
+        <script type="text/javascript" src="rateConversions.js"></script>
+        <script type="text/javascript" src="altRateParamConversions.js"></script>
+        <script type="text/javascript" src="pilotRates.js"></script>
 
-            // BF rate calculation function
-            var bfcalc = function(rcCommand, rcRate, expo, superRate) {
-
-                rcCommand=clamp(rcCommand,0,1);
-                var absRcCommand = Math.abs(rcCommand);
-
-                if(rcRate > 2.0)
-                    rcRate = rcRate + (14.54 * (rcRate - 2.0))
-
-                if(expo != 0)
-                    rcCommand = rcCommand * Math.abs(rcCommand)**3 * expo + rcCommand * (1.0 - expo)
-
-                angleRate = 200.0 * rcRate * rcCommand;
-                if(superRate != 0){
-                    rcSuperFactor = 1.0 / (clamp(1.0 - absRcCommand * (superRate), 0.01, 1.00))
-                    angleRate *= rcSuperFactor
-                }
-
-                return angleRate
-            }
-
-            //Race flight
-            var rfcalc = function(rcCommand, rcRate, expo, superRate) {
-
-                rcCommand=clamp(rcCommand,0,1);
-                angleRate = ((1 + 0.01 * expo * (rcCommand * rcCommand - 1.0)) * rcCommand)
-                angleRate = (angleRate * (rcRate + (Math.abs(angleRate) * rcRate * superRate * 0.01)))
-
-                return angleRate
-            }
-
-            var bfD1 = function(rcCommand, rcRate, expo, superRate, expo_otx) {
-
-                rcCommand=clamp(rcCommand,0,1);
-                var absRcCommand = Math.abs(rcCommand);
-
-                if(rcRate > 2.0)
-                    rcRate = rcRate + (14.54 * (rcRate - 2.0))
-
-                if (expo_otx==0){
-                    angleRateD1 = -(200*rcRate*(3*expo*superRate*rcCommand**4 - 4*expo*rcCommand**3 + expo - 1))/(rcCommand*superRate - 1)**2;
-                } else if (expo_otx<0){
-                    angleRateD1 = (200*rcRate*((expo - 1)*(expo_otx - 3*expo_otx*(rcCommand - 1)**2 + 1) - 4*expo*((expo_otx + 1)*(rcCommand - 1) - expo_otx*(rcCommand - 1)**3 + 1)**3*(expo_otx - 3*expo_otx*(rcCommand - 1)**2 + 1)))/(superRate*((expo_otx + 1)*(rcCommand - 1) - expo_otx*(rcCommand - 1)**3 + 1) - 1) - (200*rcRate*superRate*((expo - 1)*((expo_otx + 1)*(rcCommand - 1) - expo_otx*(rcCommand - 1)**3 + 1) - expo*((expo_otx + 1)*(rcCommand - 1) - expo_otx*(rcCommand - 1)**3 + 1)**4)*(expo_otx - 3*expo_otx*(rcCommand - 1)**2 + 1))/(superRate*((expo_otx + 1)*(rcCommand - 1) - expo_otx*(rcCommand - 1)**3 + 1) - 1)**2;
-                } else {
-                    angleRateD1 = (200*rcRate*superRate*((- expo_otx*rcCommand**3 + (expo_otx - 1)*rcCommand)*(expo - 1) + expo*(- expo_otx*rcCommand**3 + (expo_otx - 1)*rcCommand)**4)*(3*expo_otx*rcCommand**2 - expo_otx + 1))/(superRate*(rcCommand*(expo_otx - 1) - expo_otx*rcCommand**3) + 1)**2 - (200*rcRate*((expo - 1)*(3*expo_otx*rcCommand**2 - expo_otx + 1) + 4*expo*(- expo_otx*rcCommand**3 + (expo_otx - 1)*rcCommand)**3*(3*expo_otx*rcCommand**2 - expo_otx + 1)))/(superRate*(- expo_otx*rcCommand**3 + (expo_otx - 1)*rcCommand) + 1);
-                }
-
-                return angleRateD1
-            }
-
-            var bfD2 = function(rcCommand, rcRate, expo, superRate, expo_otx) {
-
-                rcCommand=clamp(rcCommand,0,1);
-                var absRcCommand = Math.abs(rcCommand);
-
-                if(rcRate > 2.0)
-                    rcRate = rcRate + (14.54 * (rcRate - 2.0))
-
-                if (expo_otx==0){
-                    angleRateD2 = -(400*rcRate*(superRate - expo*superRate + 6*expo*rcCommand**2 - 8*expo*rcCommand**3*superRate + 3*expo*rcCommand**4*superRate**2))/(rcCommand*superRate - 1)**3;
-                } else if (expo_otx<0){
-                    angleRateD2 = (400*rcRate*superRate**2*((expo - 1)*((expo_otx + 1)*(rcCommand - 1) - expo_otx*(rcCommand - 1)**3 + 1) - expo*((expo_otx + 1)*(rcCommand - 1) - expo_otx*(rcCommand - 1)**3 + 1)**4)*(expo_otx - 3*expo_otx*(rcCommand - 1)**2 + 1)**2)/(superRate*((expo_otx + 1)*(rcCommand - 1) - expo_otx*(rcCommand - 1)**3 + 1) - 1)**3 - (400*rcRate*superRate*((expo - 1)*(expo_otx - 3*expo_otx*(rcCommand - 1)**2 + 1) - 4*expo*((expo_otx + 1)*(rcCommand - 1) - expo_otx*(rcCommand - 1)**3 + 1)**3*(expo_otx - 3*expo_otx*(rcCommand - 1)**2 + 1))*(expo_otx - 3*expo_otx*(rcCommand - 1)**2 + 1))/(superRate*((expo_otx + 1)*(rcCommand - 1) - expo_otx*(rcCommand - 1)**3 + 1) - 1)**2 - (200*rcRate*(12*expo*((expo_otx + 1)*(rcCommand - 1) - expo_otx*(rcCommand - 1)**3 + 1)**2*(expo_otx - 3*expo_otx*(rcCommand - 1)**2 + 1)**2 + 3*expo_otx*(2*rcCommand - 2)*(expo - 1) - 12*expo*expo_otx*(2*rcCommand - 2)*((expo_otx + 1)*(rcCommand - 1) - expo_otx*(rcCommand - 1)**3 + 1)**3))/(superRate*((expo_otx + 1)*(rcCommand - 1) - expo_otx*(rcCommand - 1)**3 + 1) - 1) + (600*expo_otx*rcRate*superRate*(2*rcCommand - 2)*((expo - 1)*((expo_otx + 1)*(rcCommand - 1) - expo_otx*(rcCommand - 1)**3 + 1) - expo*((expo_otx + 1)*(rcCommand - 1) - expo_otx*(rcCommand - 1)**3 + 1)**4))/(superRate*((expo_otx + 1)*(rcCommand - 1) - expo_otx*(rcCommand - 1)**3 + 1) - 1)**2;
-                } else {
-                    angleRateD2 = (400*rcRate*superRate**2*((- expo_otx*rcCommand**3 + (expo_otx - 1)*rcCommand)*(expo - 1) + expo*(- expo_otx*rcCommand**3 + (expo_otx - 1)*rcCommand)**4)*(3*expo_otx*rcCommand**2 - expo_otx + 1)**2)/(superRate*(rcCommand*(expo_otx - 1) - expo_otx*rcCommand**3) + 1)**3 - (200*rcRate*(6*expo_otx*rcCommand*(expo - 1) - 12*expo*(- expo_otx*rcCommand**3 + (expo_otx - 1)*rcCommand)**2*(3*expo_otx*rcCommand**2 - expo_otx + 1)**2 + 24*expo*expo_otx*rcCommand*(- expo_otx*rcCommand**3 + (expo_otx - 1)*rcCommand)**3))/(superRate*(- expo_otx*rcCommand**3 + (expo_otx - 1)*rcCommand) + 1) - (400*rcRate*superRate*((expo - 1)*(3*expo_otx*rcCommand**2 - expo_otx + 1) + 4*expo*(- expo_otx*rcCommand**3 + (expo_otx - 1)*rcCommand)**3*(3*expo_otx*rcCommand**2 - expo_otx + 1))*(3*expo_otx*rcCommand**2 - expo_otx + 1))/(superRate*(rcCommand*(expo_otx - 1) - expo_otx*rcCommand**3) + 1)**2 + (1200*expo_otx*rcCommand*rcRate*superRate*((- expo_otx*rcCommand**3 + (expo_otx - 1)*rcCommand)*(expo - 1) + expo*(- expo_otx*rcCommand**3 + (expo_otx - 1)*rcCommand)**4))/(superRate*(rcCommand*(expo_otx - 1) - expo_otx*rcCommand**3) + 1)**2;
-                }
-
-                return angleRateD2
-            }
-
-            var rfD1 = function(rcCommand, rcRate, expo, superRate) {
-
-                rcCommand=clamp(rcCommand,0,1);
-                angleRateD1 = (rcRate*(3*expo*rcCommand**2-expo+100)*(100*rcCommand*superRate+expo*rcCommand**3*superRate-expo*rcCommand*superRate+5000))/500000;
-
-                return angleRateD1
-            }
-
-            var rfD2 = function(rcCommand, rcRate, expo, superRate) {
-
-                rcCommand=clamp(rcCommand,0,1);
-                angleRateD2 = (rcRate*(15*superRate*expo**2*rcCommand**4-12*superRate*expo**2*rcCommand**2+superRate*expo**2+1200*superRate*expo*rcCommand**2+30000*expo*rcCommand-200*superRate*expo+10000*superRate))/500000;
-
-                return angleRateD2
-            }
-
-            //Race flight --> Betaflight
-            var rcConvert1 = function(rcRate_rf, expo_rf, superRate_rf, expo_otx,fittype) {
-
-                if (expo_otx==0){
-                    rcRate = (rcRate_rf*(superRate_rf + 100)*(expo_rf*superRate_rf - 100*superRate_rf + 10000))/200000000;
-                    superRate = -(superRate_rf*(expo_rf - 100))/10000;
-                    expo = (10000*expo_rf + 100*expo_rf*superRate_rf + expo_rf*superRate_rf**2 - 100*superRate_rf**2)/((superRate_rf + 100)*(expo_rf*superRate_rf - 100*superRate_rf + 10000));
-                } else if (expo_otx<0){
-                    rcRate = (rcRate_rf*(superRate_rf + 100)*(expo_rf*superRate_rf - 100*superRate_rf - 10000*expo_otx + 200*expo_otx*superRate_rf + 40000*expo_otx**2 - 2*expo_rf*expo_otx*superRate_rf + 10000))/(200000000*(2*expo_otx - 1)**2);
-                    superRate = -(30000*expo_otx - 100*superRate_rf + expo_rf*superRate_rf + 200*expo_otx*superRate_rf - 2*expo_rf*expo_otx*superRate_rf)/(10000*(2*expo_otx - 1)**2);
-                    expo = (10000*expo_rf + 1000000*expo_otx - 20000*expo_rf*expo_otx + 100*expo_rf*superRate_rf + 10000*expo_otx*superRate_rf + expo_rf*superRate_rf**2 + 200*expo_otx*superRate_rf**2 + 40000*expo_otx**2*superRate_rf + 4000000*expo_otx**2 - 100*superRate_rf**2 - 200*expo_rf*expo_otx*superRate_rf - 2*expo_rf*expo_otx*superRate_rf**2)/((superRate_rf + 100)*(expo_rf*superRate_rf - 100*superRate_rf - 10000*expo_otx + 200*expo_otx*superRate_rf + 40000*expo_otx**2 - 2*expo_rf*expo_otx*superRate_rf + 10000));
-                } else {
-                    rcRate = (rcRate_rf*(superRate_rf + 100)*(10000*expo_otx + 100*superRate_rf - expo_rf*superRate_rf - 10000))/(200000000*(expo_otx - 1));
-                    superRate = (superRate_rf*(expo_rf - 100))/(10000*(expo_otx - 1));
-                    expo = -(10000*expo_rf - 1000000*expo_otx + 100*expo_rf*superRate_rf - 10000*expo_otx*superRate_rf + expo_rf*superRate_rf**2 - 100*superRate_rf**2)/((superRate_rf + 100)*(10000*expo_otx + 100*superRate_rf - expo_rf*superRate_rf - 10000));
-                }
-
-                if (rcRate<0 || rcRate>12.6142 || superRate<0 || superRate>1 || expo<0 || expo>1){
-                    return rcConvert11(rcRate_rf, expo_rf, superRate_rf, expo_otx,1);
-                } else {
-                    return [rcRate,superRate,expo]
-                } 
-            }
-
-            var rcConvert11 = function(rcRate_rf, expo_rf, superRate_rf, expo_otx,fittype) {
-                var error_1=0;
-                var error_2=-1;
-                var rcRate_f=1;
-                var super_f=0;
-                diffType=0;
-                var w, dr, drmax1;
-                var drmax2=-1;
-                switch (fittype){
-                        case '3':
-                        rscale=1.1;
-                        break
-                        case '4':
-                        rscale=2;
-                        break
-                        case '5':
-                        rscale=2;
-                        diffType=1;
-                        break
-                        default:
-                        rscale=1.0;
-                }
-                
-                for (var expo_i = 0.00; expo_i < 1; expo_i+=0.01){
-                    
-                        if (expo_otx==0){
-                            rcRate_MAX = rscale*(rcRate_rf*(expo_rf - 100))/(100*(200*expo_i - 200));
-                            rcRate_MIN = (2-rscale)*(rcRate_rf*(expo_rf - 100))/(100*(200*expo_i - 200));
-                        } else if (expo_otx<0){
-                            rcRate_MAX = -rscale*(rcRate_rf*(expo_rf - 100))/(20000*(2*expo_otx - 1)*(expo_i - 1));
-                            rcRate_MIN = -(2-rscale)*(rcRate_rf*(expo_rf - 100))/(20000*(2*expo_otx - 1)*(expo_i - 1));
-                        } else {
-                            rcRate_MAX = -rscale*(rcRate_rf*(expo_rf - 100))/(20000*(expo_i - 1)*(expo_otx - 1));
-                            rcRate_MIN = -(2-rscale)*(rcRate_rf*(expo_rf - 100))/(20000*(expo_i - 1)*(expo_otx - 1));
-                        }
-                        rcRate_MAX=Math.round(100*natural2StandardRcRate(rcRate_MAX))/100;
-                        rcRate_MAX=clamp(rcRate_MAX,0.01,3.0);
-                        rcRate_MIN=Math.round(100*natural2StandardRcRate(rcRate_MIN))/100;
-                        rcRate_MIN=clamp(rcRate_MIN,0.01,rcRate_MAX);
-
-                        for (var rcRate=rcRate_MIN; rcRate<=rcRate_MAX; rcRate+=0.01){
-
-                            rcRate_u=amplifiedRcRate(rcRate);
-                            superRate = Math.round(100*(1-(20000*rcRate_u)/(rcRate_rf*(superRate_rf + 100))))/100;
-
-                            for (var superOffset=-0.05; superOffset<=0.12; superOffset+=0.01){
-                                if (superRate+superOffset<1 && superRate+superOffset>=0){
-                                    error_1=0;
-                                    drmax1=0;
-
-                                    if (diffType==0){
-                                        for (var p=0.01; p<=1+.0005; p+=0.01){
-                                            w=(fittype==1)?(1-p)**2/p:(1);
-                                            dr=Math.abs(bfcalc(expo_otx_calc(p,expo_otx), rcRate, expo_i, superRate+superOffset)-rfcalc(p, rcRate_rf, expo_rf, superRate_rf));
-                                            error_1 +=  w*dr;
-                                        }
-                                    } else {
-                                        var dr_sgn, dr_sgn_last=0, dr_last=-1;
-                                        for (var p=0.01; p<=1+.0005; p+=0.01){
-                                            dr=Math.abs(bfcalc(expo_otx_calc(p,expo_otx), rcRate, expo_i, superRate+superOffset)-rfcalc(p, rcRate_rf, expo_rf, superRate_rf));
-                                            if (dr>drmax1)
-                                                drmax1=dr;
-                                            dr_sgn=Math.sign(dr-dr_last);
-                                            if (dr_last != -1 && dr_sgn_last != dr_sgn && dr_sgn == -1){
-                                                for (var pp=Math.min(p-0.02+0.005,0.005); pp<Math.min(p+0.01,1); pp+=0.005){
-                                                    drr=Math.abs(bfcalc(expo_otx_calc(pp,expo_otx), rcRate, expo_i, superRate+superOffset)-rfcalc(pp, rcRate_rf, expo_rf, superRate_rf));
-                                                    if (drr>drmax1)
-                                                        drmax1=drr;
-                                                }
-                                            }
-                                            dr_last=dr;
-                                            dr_sgn_last=dr_sgn;
-                                        }
-                                        /*if (Math.round(100*rcRate)/100==2.3 && Math.round(100*expo_i)/100==.8){
-                                            console.log(superRate+superOffset)
-                                            console.log(drmax1)
-                                        }*/
-                                    }
-
-                                    if (diffType==0 && ( error_2==-1 || error_1 < error_2 )){
-                                        expo=expo_i;
-                                        rcRate_f=rcRate_u;
-                                        super_f=superRate+superOffset;
-                                        error_2=error_1;
-                                    } else if (diffType==1 && (drmax2==-1 || drmax1 < drmax2)){
-                                        expo=expo_i;
-                                        rcRate_f=rcRate_u;
-                                        super_f=superRate+superOffset;
-                                        drmax2=drmax1;
-                                    }
-                                }
-                            }
-                        }
-                        if (rscale==1)
-                            break
-                }
-                
-                return [rcRate_f,super_f,expo]
-            }
-
-            //Betaflight --> Race flight
-            var rcConvert2 = function(rcRate, superRate, expo, expo_otx,fittype) {
-
-                rcRate=amplifiedRcRate(rcRate);
-                superRate=clamp(superRate,0.000001,1);
-
-                if (expo_otx==0){
-                    rcRate_rf = -(100*rcRate*(expo + superRate - expo*superRate + ((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) - 1))/(superRate*(superRate - 1));
-                    superRate_rf = (50*expo + 50*superRate - 50*expo*superRate + 50*((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) - 50)/((expo - 1)*(superRate - 1));
-                    expo_rf = 50*expo + 50*superRate - 50*expo*superRate - 50*((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) + 50;
-                } else if (expo_otx<0){
-                    rcRate_rf = (100*rcRate*(2*expo_otx - 1)*(expo + 2*expo_otx + superRate - 2*expo*expo_otx - expo*superRate - 2*expo_otx*superRate + ((expo - 1)*(superRate - 1)*(8*expo_otx - expo + 3*superRate + 4*expo*expo_otx + expo*superRate - 12*expo_otx*superRate - 4*expo*expo_otx**2 + 12*expo_otx**2*superRate + 4*expo_otx**2 - 4*expo*expo_otx*superRate + 4*expo*expo_otx**2*superRate + 1))**(1/2) + 2*expo*expo_otx*superRate - 1))/((superRate - 1)*(3*expo_otx + superRate - 4*expo_otx*superRate + 4*expo_otx**2*superRate));
-                    superRate_rf = -(50*expo + 100*expo_otx + 50*superRate - 100*expo*expo_otx - 50*expo*superRate - 100*expo_otx*superRate + 50*((expo - 1)*(superRate - 1)*(8*expo_otx - expo + 3*superRate + 4*expo*expo_otx + expo*superRate - 12*expo_otx*superRate - 4*expo*expo_otx**2 + 12*expo_otx**2*superRate + 4*expo_otx**2 - 4*expo*expo_otx*superRate + 4*expo*expo_otx**2*superRate + 1))**(1/2) + 100*expo*expo_otx*superRate - 50)/((2*expo_otx - 1)*(expo - 1)*(superRate - 1));
-                    expo_rf = 50*expo + 100*expo_otx + 50*superRate - 100*expo*expo_otx - 50*expo*superRate - 100*expo_otx*superRate - 50*((expo - 1)*(superRate - 1)*(8*expo_otx - expo + 3*superRate + 4*expo*expo_otx + expo*superRate - 12*expo_otx*superRate - 4*expo*expo_otx**2 + 12*expo_otx**2*superRate + 4*expo_otx**2 - 4*expo*expo_otx*superRate + 4*expo*expo_otx**2*superRate + 1))**(1/2) + 100*expo*expo_otx*superRate + 50;
-                } else {
-                    rcRate_rf = -(100*rcRate*(expo + superRate - expo*superRate + ((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) - 1))/(superRate*(superRate - 1));
-                    superRate_rf = (50*expo + 50*superRate - 50*expo*superRate + 50*((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) - 50)/((expo - 1)*(superRate - 1));
-                    expo_rf = 50*expo + 50*expo_otx + 50*superRate - 50*expo*expo_otx - 50*expo*superRate - 50*expo_otx*superRate + 50*expo_otx*((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) - 50*((expo - 1)*(superRate - 1)*(3*superRate - expo + expo*superRate + 1))**(1/2) + 50*expo*expo_otx*superRate + 50;
-                }
-
-                if (rcRate_rf<=0 || rcRate_rf>2500 || superRate_rf<0 || expo_rf<0 || expo_rf>100){
-                    return rcConvert22(rcRate_rf, expo_rf, superRate_rf, expo_otx,1);
-                } else {
-                    return [rcRate_rf,superRate_rf,expo_rf]
-                }
-
-            }
-
-            var rcConvert22 = function(rcRate, superRate, expo, expo_otx,fittype) {
-
-                rcRate_u=amplifiedRcRate(rcRate);
-                superRate=clamp(superRate,0.000001,1);
-
-                var error_1=0;
-                var error_2=-1;
-                var rcRate_rf_f=1;
-                var super_f=0;
-                diffType=0;
-                var w, dr, drmax1;
-                var drmax2=-1;
-                
-                
-                switch (fittype){
-                        case '3':
-                        rscale=1.1;
-                        break
-                        case '4':
-                        rscale=2;
-                        break
-                        case '5':
-                        rscale=2;
-                        diffType=1;
-                        break
-                        default:
-                        rscale=1.0;
-                }
-                
-                
-                for (var expo_rf_i = 0.00; expo_rf_i < 100; expo_rf_i+=1){
-
-                    if (expo_otx==0){
-                        rcRate_rf_MAX = rscale*(20000*rcRate_u*(expo - 1))/(expo_rf_i - 100);
-                        rcRate_rf_MIN = (2-rscale)*(20000*rcRate_u*(expo - 1))/(expo_rf_i - 100);
-                    } else if (expo_otx<0){
-                        rcRate_rf_MAX = -rscale*(20000*rcRate_u*(2*expo_otx - 1)*(expo - 1))/(expo_rf_i - 100);
-                        rcRate_rf_MIN = -(2-rscale)*(20000*rcRate_u*(2*expo_otx - 1)*(expo - 1))/(expo_rf_i - 100);
-                    } else {
-                        rcRate_rf_MAX = -rscale*(20000*rcRate_u*(expo - 1)*(expo_otx - 1))/(expo_rf_i - 100);
-                        rcRate_rf_MIN = -(2-rscale)*(20000*rcRate_u*(expo - 1)*(expo_otx - 1))/(expo_rf_i - 100);
-                    }
-                    rcRate_rf_MAX=Math.round(clamp(rcRate_rf_MAX,1,2500));
-                    rcRate_rf_MIN=Math.round(clamp(rcRate_rf_MIN,1,rcRate_rf_MAX));
-                    
-                    for (var rcRate_rf=rcRate_rf_MIN; rcRate_rf<=rcRate_rf_MAX; rcRate_rf+=1){
-                        
-                        superRate_rf = Math.round(-(100*(rcRate_rf + (200*rcRate_u)/(superRate - 1)))/rcRate_rf);
-
-                        for (var superOffset=-14; superOffset<=5; superOffset+=1){
-                            if (superRate_rf+superOffset>0){
-                                error_1=0;
-                                drmax1=0;
-                                if (diffType==0){
-                                    for (var p=0.01; p<=1+.0005; p+=0.01){
-                                        w=(fittype==1)?(1-p)**2/p:(1);
-                                        dr=Math.abs(bfcalc(expo_otx_calc(p,expo_otx), rcRate, expo, superRate)-rfcalc(p, rcRate_rf, expo_rf_i, superRate_rf+superOffset));
-                                        error_1 +=  w*dr;
-                                    }
-                                } else {
-                                    var dr_sgn, dr_sgn_last=0, dr_last=-1;
-                                    for (var p=0.01; p<=1+.0005; p+=0.01){
-                                        dr=Math.abs(bfcalc(expo_otx_calc(p,expo_otx), rcRate, expo, superRate)-rfcalc(p, rcRate_rf, expo_rf_i, superRate_rf+superOffset));
-                                        if (dr>drmax1)
-                                            drmax1=dr;
-                                        dr_sgn=Math.sign(dr-dr_last);
-                                        if (dr_last != -1 && dr_sgn_last != dr_sgn && dr_sgn == -1){
-                                            for (var pp=p-0.02+0.005; pp<p+0.01; pp+=0.005){
-                                                drr=Math.abs(bfcalc(expo_otx_calc(pp,expo_otx), rcRate, expo, superRate)-rfcalc(pp, rcRate_rf, expo_rf_i, superRate_rf+superOffset));
-                                                if (drr>drmax1)
-                                                    drmax1=drr;
-                                            }
-                                        }
-                                        dr_last=dr;
-                                        dr_sgn_last=dr_sgn;
-                                    }
-                                    /*if (expo_rf_i==66 && superRate_rf+superOffset == 114 && rcRate_rf==631){
-                                        console.log(rcRate)
-                                        console.log(drmax1)
-                                    }*/
-                                }
-                                if (diffType==0 && ( error_2==-1 || error_1 < error_2 )){
-                                    expo_rf=expo_rf_i;
-                                    rcRate_rf_f=rcRate_rf;
-                                    super_f=superRate_rf+superOffset;
-                                    error_2=error_1;
-                                } else if (diffType==1 && (drmax2==-1 || drmax1 < drmax2)){
-                                    expo_rf=expo_rf_i;
-                                    rcRate_rf_f=rcRate_rf;
-                                    super_f=superRate_rf+superOffset;
-                                    drmax2=drmax1;
-                                }
-                            }
-
-                        }
-                        if (rscale==1)
-                            break
-                    }
-                }
-
-                return [rcRate_rf_f,super_f,expo_rf]
-            }
-
-            //Open TX expo function
-            var expo_otx_calc = function(rcCommand, expo_otx){
-                if(expo_otx < 0){
-                    rcCommand = 1+expo_otx*(1-rcCommand)**3-(1-rcCommand)*(1+expo_otx)
-                } else if(expo_otx > 0){
-                    rcCommand = expo_otx*rcCommand**3+rcCommand*(1-expo_otx)
-                }
-                return rcCommand
-            }
-
-            var updateRcRateNaturalScaling = function(expo_otx, Slope, Maxdeg, Shape){
-                if (Maxdeg==0)
-                    return 0
-                kotx=(expo_otx<=0)?(1-2*expo_otx):(1-expo_otx);
-                minRcRate=Slope/kotx;
-                maxRcRate=Maxdeg/200;
-                rcRate = minRcRate*Shape+(1-Shape)*maxRcRate;
-                return rcRate
-            }
-
-            var natural2StandardRcRate = function(rcRate){
-                if (rcRate>2){
-                    rcRate=2+(rcRate-2)/15.54;
-                }
-                return Math.round(100*rcRate)/100;
-            }
-
-            var unAmplifiedRcRate = function(rcRate){
-                if(rcRate > 2.0)
-                    rcRate = (50*rcRate)/777 + 1454/777;
-                return Math.round(100*rcRate)/100
-            }
-
-            var amplifiedRcRate = function(rcRate){
-                if(rcRate > 2.0)
-                    rcRate =rcRate+(rcRate-2)*14.54;
-                return rcRate
-            }
-
-            var updateSuperRate = function(rcRate,Maxdeg){
-                //must be real rcRate
-                superRate = Math.max(0,1-200*rcRate/Maxdeg);
-                return Math.round(100*superRate)/100
-            }
-
-            var updateExpo = function(rcRate,expo_otx,Slope){
-                //must be real rcRate
-                kotx=(expo_otx<=0)?(1-2*expo_otx):(1-expo_otx);
-                expo = 1-Slope/(rcRate*kotx);
-                return Math.round(100*expo)/100
-            }
-
-            var updateExpo_otx = function(rcRate,expo,Slope){
-                //must be real rcRate
-                expo_otx = 1-Slope/(rcRate*(1-expo));
-                expo_otx = (expo_otx>0)?(expo_otx):(0.5*expo_otx);
-                return Math.round(100*expo_otx)/100
-            }
-
-            var updateSlope = function(rcRate,expo,expo_otx){
-                //must be real rcRate
-                kotx=(expo_otx<=0)?(1-2*expo_otx):(1-expo_otx);
-                Slope = rcRate*(1-expo)*kotx;
-                return Slope
-            }
-
-            var updateMaxdeg = function(rcRate,superRate){
-                //must be real rcRate
-                Maxdeg = rcRate*200/(1-superRate);
-                return Maxdeg
-            }
-
-            var updateShape = function(rcRate,expo_otx,Slope,Maxdeg){
-                //must be real rcRate
-                kotx=(expo_otx<=0)?(1-2*expo_otx):(1-expo_otx);
-                minRcRate=Slope/kotx;
-                maxRcRate=Maxdeg/200;
-                Shape =(rcRate-maxRcRate)/(minRcRate-maxRcRate);
-                return Shape
-            }
-
+        <script type="text/javascript">
+           
             var checkboxCallback = function(){
                 if(checkBox.checked){
                     $('#Slope2').hide();
@@ -464,29 +90,24 @@
                 return null
             }
 
-            var setRates = function(a){
-                if(a[0]==0){
-                    checkBox.checked=false;
-                } else {
-                    checkBox.checked=true;
-                }
-                checkboxCallback();
-                $('#bfRate1').val(a[1]).change();
-                $('#bfSuper1').val(a[2]).change();
-                $('#bfExpo1').val(a[3]).change();
-                $('#otxNegExpo1').val(a[4]).change();
-                $('#bfSuper2').val(a[5]).change();
-                $('#otxNegExpo2').val(a[6]).change();
-                $('#bfRate3').val(a[7]).change();
-                $('#bfSuper3').val(a[8]).change();
-                $('#bfExpo3').val(a[9]).change();
-                $('#otxNegExpo3').val(a[10]).change();
-                return null
-            }
-
             function drawChart(update) {
 
                 doDraw=false;
+
+                if (firstDraw) {
+                    //get/set params passed from URL
+                    obj=getObjUrl();
+                    checked=1;
+                    if (obj.oex1 == obj.oex2)
+                        checked=0;
+                    setRates( 
+                        [checked,
+                        obj.rc1,obj.s1,obj.ex1,obj.oex1, 
+                        obj.s2,obj.oex2,
+                        obj.rc3,obj.s3,obj.ex3,obj.oex3]
+                    );
+                    firstDraw=false;
+                }
 
                 if (update==1){
                     //update tuning inputs/sliders
@@ -641,8 +262,6 @@
                 }
 
 
-                var ratesData = [];
-
                 var data = new google.visualization.DataTable();
 				data.addColumn('number', 'Stick Input');
                 data.addColumn('number', 'ROLL');
@@ -769,10 +388,9 @@
                 };
 
                 var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
-
                 chart.draw(data, options);
-
                 doDraw = true;
+                setObjUrl({'rc1':bfRate1,'rc3':bfRate3,'ex1':bfExpo1,'ex3':bfExpo3,'s1':bfSuper1,'s2':bfSuper2,'s3':bfSuper3,'oex1':otxNegExpo1,'oex2':otxNegExpo2,'oex3':otxNegExpo3})
             }
 
             var showHelp = function(){
@@ -799,131 +417,9 @@
                 $('#hideRfRates').hide();
             }
 
-            //Convert rates
-            var convertRoll = function(){
-                var curveFunc;
-                var fittype=$('#r2b')[0].value;
-                if (fittype==0){
-                    curveFunc=rcConvert1;
-                } else {
-                    curveFunc=rcConvert11;
-                }
-                toBf = curveFunc(rfRateSet[0], rfRateSet[1], rfRateSet[2], clamp(parseFloat($('#otxNegExpo1').val(), 10),-1,0.999),fittype);
-                $('#bfRate1').val(clamp(natural2StandardRcRate(toBf[0]),0,2.40)).change();
-                $('#bfExpo1').val(clamp(Math.round(toBf[2]*100)/100,-0.01,1)).change();
-                $('#bfSuper1').val(clamp(Math.round(toBf[1]*100)/100,0,1)).change();
-                $('#bfRateSlider1').val(clamp(natural2StandardRcRate(toBf[0]),0,2.40)).change();
-                $('#bfExpoSlider1').val(clamp(toBf[2],-0.01,1)).change();
-                $('#bfSuperSlider1').val(clamp(toBf[1],0,1)).change();
-                drawChart(0);
-            }
-
-            var convertYaw = function(){
-                var curveFunc;
-                var fittype=$('#r2b')[0].value;
-                if (fittype==0){
-                    curveFunc=rcConvert1;
-                } else {
-                    curveFunc=rcConvert11;
-                }
-                toBf = curveFunc(rfRateSet[0], rfRateSet[1], rfRateSet[2], clamp(parseFloat($('#otxNegExpo3').val(), 10),-1,0.999),fittype);
-                $('#bfRate3').val(clamp(natural2StandardRcRate(toBf[0]),0,2.40)).change();
-                $('#bfExpo3').val(clamp(Math.round(toBf[2]*100)/100,-0.01,1)).change();
-                $('#bfSuper3').val(clamp(Math.round(toBf[1]*100)/100,0,1)).change();
-                $('#bfRateSlider3').val(clamp(natural2StandardRcRate(toBf[0]),0,2.40)).change();
-                $('#bfExpoSlider3').val(clamp(toBf[2],-0.01,1)).change();
-                $('#bfSuperSlider3').val(clamp(toBf[1],0,1)).change();
-                drawChart(0);
-            } 
-
-            //to raceflight
-            var convertRoll2RF = function(){
-                var curveFunc;
-                var fittype=$('#b2r')[0].value;
-                if (fittype==0){
-                    curveFunc=rcConvert2;
-                } else {
-                    curveFunc=rcConvert22;
-                }
-                toRf = curveFunc(parseFloat($('#bfRate1').val(), 10), parseFloat($('#bfSuper1').val(), 10), parseFloat($('#bfExpo1').val(), 10), clamp(parseFloat($('#otxNegExpo1').val(), 10),-1,0.999),fittype);
-                $('#rfRate').val(Math.round(toRf[0])).change();
-                $('#rfSuper').val(Math.round(toRf[1])).change();
-                $('#rfExpo').val(Math.round(toRf[2])).change();
-                drawChart(0);
-            }
-
-            var convertYaw2RF = function(){
-                var curveFunc;
-                var fittype=$('#b2r')[0].value;
-                if (fittype==0){
-                    curveFunc=rcConvert2;
-                } else {
-                    curveFunc=rcConvert22;
-                }
-                toRf = curveFunc(parseFloat($('#bfRate3').val(), 10), parseFloat($('#bfSuper3').val(), 10), parseFloat($('#bfExpo3').val(), 10), clamp(parseFloat($('#otxNegExpo3').val(), 10),-1,0.999),fittype);
-                $('#rfRate').val(Math.round(toRf[0])).change();
-                $('#rfSuper').val(Math.round(toRf[1])).change();
-                $('#rfExpo').val(Math.round(toRf[2])).change();
-                drawChart(0);
-            }
-
-            //fit error calc
-            var rollError = function(dp){
-                if (!dp)
-                    dp=.0005;
-                var errorSum=0
-                var error_i;
-                var rcRate=parseFloat($('#bfRate1').val(), 10);
-                var expo=parseFloat($('#bfExpo1').val(), 10);
-                var superRate=parseFloat($('#bfSuper1').val(), 10);
-                var expo_otx=clamp(parseFloat($('#otxNegExpo1').val(), 10),-1,0.999);
-
-                max_error=0;
-                for (var p=0.0; p<=1; p+=dp){
-                    error_i =  Math.abs(bfcalc(expo_otx_calc(p,expo_otx),rcRate , expo, superRate)-rfcalc(p, rfRateSet[0], rfRateSet[1], rfRateSet[2]));
-                    errorSum += error_i;
-                    if (error_i>max_error)
-                        max_error=error_i;
-                }
-                if (dp==.0005){
-                    console.log('Average error over 2000 pts:')
-                    console.log(errorSum*dp)
-                    console.log('Maximum error over 2000 pts:')
-                    console.log(max_error)
-                }
-                return max_error
-            }
-
-            var yawError = function(dp){
-                if (!dp)
-                    dp=.0005;
-                var errorSum=0
-                var error_i;
-                var rcRate=parseFloat($('#bfRate3').val(), 10);
-                var expo=parseFloat($('#bfExpo3').val(), 10);
-                var superRate=parseFloat($('#bfSuper3').val(), 10);
-                var expo_otx=clamp(parseFloat($('#otxNegExpo3').val(), 10),-1,0.999);
-
-                max_error=0;
-                for (var p=0.0; p<=1; p+=dp){
-                    error_i =  Math.abs(bfcalc(expo_otx_calc(p,expo_otx), rcRate , expo, superRate)-rfcalc(p, rfRateSet[0], rfRateSet[1], rfRateSet[2]));
-                    errorSum += error_i;
-                    if (error_i>max_error)
-                        max_error=error_i;
-                }
-                if (dp==.0005){
-                    console.log('Average error over 2000 pts:')
-                    console.log(errorSum/2000)
-                    console.log('Maximum error over 2000 pts:')
-                    console.log(max_error)
-                }
-                return max_error
-            }
-
             $( document ).ready(function() {
                 google.charts.load('current', {'packages':['corechart']});
                 google.charts.setOnLoadCallback(drawChart);
-                //callbacks
 
                 //sliders, configurator
                 $('#bfRateSlider1').on('input', function() {
@@ -1034,7 +530,6 @@
                 })
 
                 checkBox.checked=true;
-                checkboxCallback();
 
                 //options checkbox
                 checkOptions[0] = document.getElementById("zoom50");
@@ -1063,111 +558,17 @@
                 });
 
                 $('#pilots').on('change', function() {
-                    doDraw=false;
-                    $('#rate_choices').find('span').hide();
-                    switch (this.value){
-                        case '1': //default
-                        $('#value1').show();
-                        setRates( 
-                            [1,
-                            1.0,0.7,0,0,
-                            0.7,0,
-                            1.0,0.7,0,0]);
-                        break
-                        case '2': //holdox
-                        $('#value2').show();
-                        setRates( 
-                            [1,
-                            2.04,0,0.45,0,
-                            0,0,
-                            2.04,0,0.61,0]);
-                        break
-                        case '30': //sfpv old
-                        $('#value30').show();
-                        setRates( 
-                            [1,
-                            0.86,0.63,0.0,0,
-                            0.63,0,
-                            0.73,0.50,0.00,0]);
-                        break
-                        case '3': //sfpv new
-                        $('#value3').show();
-                        setRates( 
-                            [1,
-                            1.75,0.38,0.47,0,
-                            0.38,0,
-                            1.27,0.43,0.04,0]);
-                        break
-                        case '4': //hoopes
-                        $('#value4').show();
-                        setRates( 
-                            [1,
-                            0.8,0.66,0,0,
-                            0.64,0,
-                            0.8,0.61,0,0]);
-                        break
-
-                        case '5': //minchan (converted)
-                        $('#value5').show();
-                        setRates( 
-                            [1,
-                            .94,0.67,0.02,0,
-                            0.67,0,
-                            0.89,0.47,0.15,0]);
-                        break
-
-                        case '6': //vanover (converted)
-                        $('#value6').show();
-                        setRates( 
-                            [1,
-                            1.04,0.67,0.00,0,
-                            0.67,0,
-                            1.04,0.67,0.00,0]);
-                        break
-
-                        case '7': //headsup fpv
-                        $('#value7').show();
-                        setRates( 
-                            [1,
-                            0.8,0.7,0.00,0,
-                            0.7,0,
-                            0.8,0.7,0.00,0]);
-                        break
-
-                        case '8': //Nytfury FPV
-                        $('#value8').show();
-                        setRates( 
-                            [1,
-                            0.92,0.56,0.28,0,
-                            0.56,0,
-                            0.63,0.39,0.07,0]);
-                        break
-
-                        case '9': //JohnEFly
-                        $('#value9').show();
-                        setRates( 
-                            [1,
-                            1,0.55,0.1,0,
-                            0.55,0,
-                            1,0.7,0,0]);
-                        break
-                        case '10': 
-                        $('#value10').show();
-                        setRates( 
-                            [0,
-                            0.95,0.63,0.31,-0.2, 
-                            0.61,-.16,
-                            0.49,0.75,0.0,-0.3]); //-45% throttle
-                    }
-                        doDraw=true;
-                        drawChart();
-                    });
-
-                    rfRateSet[0]=parseFloat($('#rfRate').val(),10);
-                    rfRateSet[1]=parseFloat($('#rfExpo').val(),10);
-                    rfRateSet[2]=parseFloat($('#rfSuper').val(),10);
-
+                    setPilotRates(this.value);
                 });
+
+                //init vars
+                rfRateSet[0]=parseFloat($('#rfRate').val(),10);
+                rfRateSet[1]=parseFloat($('#rfExpo').val(),10);
+                rfRateSet[2]=parseFloat($('#rfSuper').val(),10);
+
+                checkboxCallback();
+                
+            });
 
             </script>
     </head>
@@ -1340,8 +741,8 @@
                     <option value="6">(Racing) Vanover [F1]</option>
                     <option value="7">(Racing) Headsup FPV</option>
                     <option value="8">(Racing) Nytfury [F1]</option>
-                    <option value="9">(Racing) JohnEFly</option>
-                    <option value="10">(Racing) My rates</option>
+                    <option value="109">(Racing) My rates, smooth</option>
+                    <option value="110">(Racing) My rates, fast</option>
                 </select> 
                 <div style="text-align: center; width:500px; padding-top:20px; margin-left:auto; margin-right:auto">
                     <span id="value0" style="display:none"></span>
@@ -1354,8 +755,8 @@
                     <span id="value6" style="display:none">FlightOne: 350-40-75</span>
                     <span id="value7" style="display:none">(<a target="_blank" href="https://www.youtube.com/watch?v=jUpAjoKQOXU">Youtube</a>)</span>
                     <span id="value8" style="display:none">FlightOne: 258-50-58, 147-20-40</span>
-                    <span id="value9" style="display:none">(From over 1 year ago)</span>
-                    <span id="value10" style="display:none">Uses negative expo on Open TX transmitter to lower Pitch sensitivity (relative to Roll) and increase Yaw's growth rate & center-stick resolution.</span>
+                    <span id="value109" style="display:none">Expo-y</span>
+                    <span id="value110" style="display:none">Super-y</span>
                 </div>
             </div>
         </div>
