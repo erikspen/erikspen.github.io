@@ -279,6 +279,24 @@ var convertRoll = function(){
     drawChart(0);
 }
 
+var convertPitch = function(){
+    var curveFunc;
+    var fittype=$('#r2b')[0].value;
+    if (fittype==0){
+        curveFunc=rcConvert1;
+    } else {
+        curveFunc=rcConvert11;
+    }
+    toBf = curveFunc(rfRateSet[0], rfRateSet[1], rfRateSet[2], clamp(parseFloat($('#otxNegExpo2').val(), 10),-1,0.999),fittype);
+    $('#bfRate2').val(clamp(natural2StandardRcRate(toBf[0]),0,2.40)).change();
+    $('#bfExpo2').val(clamp(Math.round(toBf[2]*100)/100,-0.01,1)).change();
+    $('#bfSuper2').val(clamp(Math.round(toBf[1]*100)/100,0,1)).change();
+    $('#bfRateSlider2').val(clamp(natural2StandardRcRate(toBf[0]),0,2.40)).change();
+    $('#bfExpoSlider2').val(clamp(toBf[2],-0.01,1)).change();
+    $('#bfSuperSlider2').val(clamp(toBf[1],0,1)).change();
+    drawChart(0);
+}
+
 var convertYaw = function(){
     var curveFunc;
     var fittype=$('#r2b')[0].value;
@@ -307,6 +325,21 @@ var convertRoll2RF = function(){
         curveFunc=rcConvert22;
     }
     toRf = curveFunc(parseFloat($('#bfRate1').val(), 10), parseFloat($('#bfSuper1').val(), 10), parseFloat($('#bfExpo1').val(), 10), clamp(parseFloat($('#otxNegExpo1').val(), 10),-1,0.999),fittype);
+    $('#rfRate').val(Math.round(toRf[0])).change();
+    $('#rfSuper').val(Math.round(toRf[1])).change();
+    $('#rfExpo').val(Math.round(toRf[2])).change();
+    drawChart(0);
+}
+
+var convertPitch2RF = function(){
+    var curveFunc;
+    var fittype=$('#b2r')[0].value;
+    if (fittype==0){
+        curveFunc=rcConvert2;
+    } else {
+        curveFunc=rcConvert22;
+    }
+    toRf = curveFunc(parseFloat($('#bfRate2').val(), 10), parseFloat($('#bfSuper2').val(), 10), parseFloat($('#bfExpo2').val(), 10), clamp(parseFloat($('#otxNegExpo2').val(), 10),-1,0.999),fittype);
     $('#rfRate').val(Math.round(toRf[0])).change();
     $('#rfSuper').val(Math.round(toRf[1])).change();
     $('#rfExpo').val(Math.round(toRf[2])).change();
