@@ -156,6 +156,107 @@ var rcConvert11 = function(rcRate_rf, expo_rf, superRate_rf, expo_otx,fittype) {
     return [rcRate_f,super_f,expo]
 }
 
+//Betaflight --> Betaflight, iterative
+//Example: rcConvert12(0.95, 0.61, 0.31, -0.16,-0.2,'3'), gives closest betaflight fit for -.16 open-tx expo to -.2 expo
+var rcConvert12 = function(rcRate_fixed, superRate_fixed, expo_fixed, expo_otx_fixed,expo_otx,fittype) {
+    var error_1=0;
+    var error_2=-1;
+    var rcRate_f=1;
+    var super_f=0;
+    diffType=0;
+    var w, dr, drmax1;
+    var drmax2=-1;
+    switch (fittype){
+            case '3':
+            rscale=1.1;
+            break
+            case '4':
+            rscale=2;
+            break
+            case '5':
+            rscale=2;
+            diffType=1;
+            break
+            default:
+            rscale=1.0;
+    }
+
+    
+    for (var expo_i = 0.00; expo_i < 1; expo_i+=0.01){
+
+            rcRate_u=amplifiedRcRate(rcRate_fixed);
+            superRate_fixed=clamp(superRate_fixed,0.000001,1);
+        
+            kotx_fixed=(expo_otx_fixed<=0)?(1-2*expo_otx_fixed):(1-expo_otx_fixed);
+            kotx_new=(expo_otx<=0)?(1-2*expo_otx):(1-expo_otx);
+            rcRate_MAX = rscale*rcRate_u*(1-expo_i)*kotx_fixed/kotx_new;
+            rcRate_MIN = (2-rscale)*rcRate_u*(1-expo_i)*kotx_fixed/kotx_new; //
+        
+            rcRate_MAX=Math.round(100*natural2StandardRcRate(rcRate_MAX))/100;
+            rcRate_MAX=clamp(rcRate_MAX,0.01,3.0);
+            rcRate_MIN=Math.round(100*natural2StandardRcRate(rcRate_MIN))/100;
+            rcRate_MIN=clamp(rcRate_MIN,0.01,rcRate_MAX);
+
+            for (var rcRate=rcRate_MIN; rcRate<=rcRate_MAX; rcRate+=0.01){
+
+                rcRate_u=amplifiedRcRate(rcRate);
+                superRate = updateSuperRate(rcRate,updateMaxdeg(amplifiedRcRate(rcRate_fixed),superRate_fixed));
+
+                for (var superOffset=-0.05; superOffset<=0.12; superOffset+=0.01){
+                    if (superRate+superOffset<1 && superRate+superOffset>=0){
+                        error_1=0;
+                        drmax1=0;
+
+                        if (diffType==0){
+                            for (var p=0.01; p<=1+.0005; p+=0.01){
+                                w=(fittype==1)?(1-p)**2/p:(1);
+                                dr=Math.abs(bfcalc(expo_otx_calc(p,expo_otx), rcRate, expo_i, superRate+superOffset)-bfcalc(expo_otx_calc(p,expo_otx_fixed), rcRate_fixed, expo_fixed, superRate_fixed));
+                                error_1 +=  w*dr;
+                            }
+                        } else {
+                            var dr_sgn, dr_sgn_last=0, dr_last=-1;
+                            for (var p=0.01; p<=1+.0005; p+=0.01){
+                                dr=Math.abs(bfcalc(expo_otx_calc(p,expo_otx), rcRate, expo_i, superRate+superOffset)-bfcalc(expo_otx_calc(p,expo_otx_fixed), rcRate_fixed, expo_fixed, superRate_fixed));
+                                if (dr>drmax1)
+                                    drmax1=dr;
+                                dr_sgn=Math.sign(dr-dr_last);
+                                if (dr_last != -1 && dr_sgn_last != dr_sgn && dr_sgn == -1){
+                                    for (var pp=Math.min(p-0.02+0.005,0.005); pp<Math.min(p+0.01,1); pp+=0.005){
+                                        drr=Math.abs(bfcalc(expo_otx_calc(pp,expo_otx), rcRate, expo_i, superRate+superOffset)-bfcalc(expo_otx_calc(p,expo_otx_fixed), rcRate_fixed, expo_fixed, superRate_fixed));
+                                        if (drr>drmax1)
+                                            drmax1=drr;
+                                    }
+                                }
+                                dr_last=dr;
+                                dr_sgn_last=dr_sgn;
+                            }
+                            /*if (Math.round(100*rcRate)/100==2.3 && Math.round(100*expo_i)/100==.8){
+                                console.log(superRate+superOffset)
+                                console.log(drmax1)
+                            }*/
+                        }
+
+                        if (diffType==0 && ( error_2==-1 || error_1 < error_2 )){
+                            expo=expo_i;
+                            rcRate_f=rcRate_u;
+                            super_f=superRate+superOffset;
+                            error_2=error_1;
+                        } else if (diffType==1 && (drmax2==-1 || drmax1 < drmax2)){
+                            expo=expo_i;
+                            rcRate_f=rcRate_u;
+                            super_f=superRate+superOffset;
+                            drmax2=drmax1;
+                        }
+                    }
+                }
+            }
+            if (rscale==1)
+                break
+    }
+    
+    return [rcRate_f,super_f,expo]
+}
+
 //Betaflight --> Race flight, iterative
 var rcConvert22 = function(rcRate, superRate, expo, expo_otx,fittype) {
 
@@ -412,5 +513,51 @@ var yawError = function(dp){
         console.log(max_error)
     }
     return max_error
+}
+
+//OpenTX open adds little to nothing, contrary to what I once thought.  This function converts from one OpenTX setting to another,
+//showing that almost any (reasonable) Open-Tx expo setting can be closely matched to another that does not use expo.
+var changeExpo = function(oex1,oex2,oex3){
+
+
+    bfRate = clamp(parseFloat($('#bfRate1').val(), 10),0,2.40);
+    bfExpo = clamp(parseFloat($('#bfExpo1').val(), 10),-0.01,1);
+    bfSuper = clamp(parseFloat($('#bfSuper1').val(), 10),0,1);
+    otxNegExpo = clamp(parseFloat($('#otxNegExpo1').val(), 10),-1,0.999);
+
+    console.log('----Middle fit (average error) is best----')
+    console.log('Roll>>>')
+    newRates=rcConvert12(bfRate, bfSuper, bfExpo, otxNegExpo,oex1,'3')
+    console.log(newRates)
+    newRates=rcConvert12(bfRate, bfSuper, bfExpo, otxNegExpo,oex1,'4')
+    console.log(newRates)
+    newRates=rcConvert12(bfRate, bfSuper, bfExpo, otxNegExpo,oex1,'5')
+    console.log(newRates)
+
+    bfRate = clamp(parseFloat($('#bfRate2').val(), 10),0,2.40);
+    bfExpo = clamp(parseFloat($('#bfExpo2').val(), 10),-0.01,1);
+    bfSuper = clamp(parseFloat($('#bfSuper2').val(), 10),0,1);
+    otxNegExpo = clamp(parseFloat($('#otxNegExpo2').val(), 10),-1,0.999);
+
+    console.log('Pitch>>>')
+    newRates=rcConvert12(bfRate, bfSuper, bfExpo, otxNegExpo,oex1,'3')
+    console.log(newRates)
+    newRates=rcConvert12(bfRate, bfSuper, bfExpo, otxNegExpo,oex1,'4')
+    console.log(newRates)
+    newRates=rcConvert12(bfRate, bfSuper, bfExpo, otxNegExpo,oex1,'5')
+    console.log(newRates)
+
+    bfRate = clamp(parseFloat($('#bfRate3').val(), 10),0,2.40);
+    bfExpo = clamp(parseFloat($('#bfExpo3').val(), 10),-0.01,1);
+    bfSuper = clamp(parseFloat($('#bfSuper3').val(), 10),0,1);
+    otxNegExpo = clamp(parseFloat($('#otxNegExpo3').val(), 10),-1,0.999);
+
+    console.log('Yaw>>>')
+    newRates=rcConvert12(bfRate, bfSuper, bfExpo, otxNegExpo,oex1,'3')
+    console.log(newRates)
+    newRates=rcConvert12(bfRate, bfSuper, bfExpo, otxNegExpo,oex1,'4')
+    console.log(newRates)
+    newRates=rcConvert12(bfRate, bfSuper, bfExpo, otxNegExpo,oex1,'5')
+    console.log(newRates)
 }
 
