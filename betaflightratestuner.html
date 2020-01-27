@@ -713,6 +713,8 @@
                     <option value="6">(Racing) Vanover</option>
                     <option value="7">(Racing) Headsup FPV</option>
                     <option value="8">(Racing) Nytfury [F1]</option>
+                    <!--<option value="109">(Racing) My rates, smooth</option>-->
+                    <!--<option value="110">(Racing) My rates, fast</option>-->
                 </select> 
                 <div style="text-align: center; width:500px; padding-top:20px; margin-left:auto; margin-right:auto">
                     <span id="value0" style="display:none"></span>
@@ -723,8 +725,10 @@
                     <span id="value4" style="display:none"></span>
                     <span id="value5" style="display:none">Also used by <a target="_blank" href="https://www.youtube.com/watch?v=v8FGGIncoQU">iQ0 (stickcam)</a></span>
                     <span id="value6" style="display:none"></span>
-                    <span id="value7" style="display:none">(<a target="_blank" href="https://www.youtube.com/watch?v=jUpAjoKQOXU">Youtube</a>)</span>
+                    <span id="value7" style="display:none">Also used by Noical, (<a target="_blank" href="https://www.youtube.com/watch?v=_xiy0B8sHzs">stick-cam</a>)</span>
                     <span id="value8" style="display:none">FlightOne: 258-50-58, 147-20-40</span>
+                    <!--<span id="value109" style="display:none">Expo-y</span>-->
+                    <!--<span id="value110" style="display:none">Super-y</span>-->
                 </div>
             </div>
         </div>
@@ -740,9 +744,9 @@
                 <h3> Add RaceFlight reference rates (Rate,Expo,Acro+)</h3>
                 <div>
                     <span>On/off</span><input id="rf" type="checkbox">
-                    <input type="number" id="rfRate"  step="1" min="0.00" max="5000" value="315" placeholder='0.00' class="input-field"/>
-                    <input type="number" id="rfExpo"  step="1" min="0.00" max="1000" value="41" placeholder='0.00' class="input-field"/>
-                    <input type="number" id="rfSuper" step="1" min="0.00" max="1000" value="75" placeholder='0.00' class="input-field"/>
+                    <input type="number" id="rfRate"  step="1" min="0.00" max="5000" value="393" placeholder='0.00' class="input-field"/>
+                    <input type="number" id="rfExpo"  step="1" min="0.00" max="1000" value="47" placeholder='0.00' class="input-field"/>
+                    <input type="number" id="rfSuper" step="1" min="0.00" max="1000" value="62" placeholder='0.00' class="input-field"/>
                 </div>
         
                 <div style="padding:2em 0 0 0;">
@@ -751,8 +755,8 @@
                         <option value="4" title="Initial slope within +/-50%, searches for best fit (minimum avg. error).">1-Wide search</option>
                         <option value="3" title="Initial slope within +/-10%, searches for best fit (minimum avg. error).">2-Narrow search</option>
                         <option value="5" title="(MAY BE SLOW) Searches for minimum fit error, initial slope within +/- 50%">3-Lowest Error</option>
-                        <option value="2" title="Constrained to match initial slope, searches for best fit (minimum avg. error).">4-Center-match /A</option>
-                        <option value="0" title="Uses closed-form equation to convert rates: exactly matches 1/center-stick slope, 2/slope derivative, and 3/ Max deg/s.">5-Center-match /B</option>
+                        <!--<option value="2" title="Constrained to match initial slope, searches for best fit (minimum avg. error).">4-Center-match /A</option>-->
+                        <!--<option value="0" title="Uses closed-form equation to convert rates: exactly matches 1/center-stick slope, 2/slope derivative, and 3/ Max deg/s.">5-Center-match /B</option>-->
                     </select> 
                     <span style="padding:0 1.5em 0 1.5em"><a href="#" title="Using these Raceflight rates, converts and copies to Betaflight/Roll rates above." onclick="convertRoll(); return false;">&#10532; Roll</a></span>
                     <span style="padding:0 1.5em 0 1.5em"><a href="#" title="Using these Raceflight rates, converts and copies to Betaflight/Pitch rates above." onclick="convertPitch(); return false;">&#10532; Pitch</a></span>
@@ -764,8 +768,8 @@
                         <option value="4" title="Initial slope within +/-50%, searches for best fit (minimum avg. error).">1-Wide search</option>
                         <option value="3" title="Initial slope within +/-10%, searches for best fit (minimum avg. error).">2-Narrow search</option>
                         <option value="5" title="(MAY BE SLOW) Searches for minimum fit error, initial slope within +/- 50%">3-Lowest Error</option>
-                        <option value="2" title="Constrained to match initial slope, searches for best fit (minimum avg. error).">4-Center-match /A</option>
-                        <option value="0" title="Uses closed-form equation to convert rates: exactly matches 1/center-stick slope, 2/slope derivative, and 3/ Max deg/s.">5-Center-match /B</option>
+                        <!--<option value="2" title="Constrained to match initial slope, searches for best fit (minimum avg. error).">4-Center-match /A</option>-->
+                        <!--<option value="0" title="Uses closed-form equation to convert rates: exactly matches 1/center-stick slope, 2/slope derivative, and 3/ Max deg/s.">5-Center-match /B</option>-->
                     </select> 
                     <span style="padding:0 1.5em 0 1.5em"><a href="#" title="Using Betaflight/Roll rates above, converts and copies to the Raceflight rates listed here" onclick="convertRoll2RF(); return false;">&#10534; Roll</a></span>
                     <span style="padding:0 1.5em 0 1.5em"><a href="#" title="Using Betaflight/Pitch rates above, converts and copies to the Raceflight rates listed here" onclick="convertPitch2RF(); return false;">&#10534; Pitch</a></span>
@@ -783,13 +787,11 @@
             <div id="help" style="display:none; margin:auto; max-width:900px">
                 <h3>Help</h3>
                 <ul>
-                    <li><b>Slope</b> represents center-stick sensitivity.  The value is scaled such that it's equivalent to RC Rate when no Expo is present.</li>
-                    <li><b>Shape</b> interpolates between a curve based on Super Rate, and a curve based on Expo.  While adjusting, Slope and Max deg/s are unaffected.</li>
-                    <li><b>OpenTX Expo</b> refers to the expo curve on an Open TX-based tranmitter--<u><i>typically zero.</i></u>.  <i>Negative</i> <b>OpenTX Expo</b> adds a few interesting possibilities for adjusting curve shape.</li>
-                    <li>If <b>Super Rate</b> value is red in color, a negative <b>OpenTX Expo</b> is causing a non-increasing slope.  To resolve, <b>Super Rate</b> should be increased.</li>
+                    <li><b>Slope_0</b> represents center-stick sensitivity.  The value is scaled such that it's equivalent to RC Rate.</li>
+                    <li><b>Shape</b> interpolates between a curve based on Super Rate, and a curve based on Expo while holding initial slope and Max deg/s constant.</li>
+                    <li><b>OpenTX Expo</b> refers to the expo curve on an Open TX-based tranmitter--<u><i>typically zero.</i></u>.</li>
                     <li>Checking the <b>Derivative</b>-box plots the change in <b>Slope</b> versus stick position.</li>
-                    <li><b>FlightOne/Raceflight conversion</b> offers fits based on minimizing average error (Methods 1,2,4) or minimizing the single largest error across stick travel (Methd 3).  Methods 1 & 3 are constrained to fits within +/-50% of the source initial slope, whereas Method 2 constrains initial slope to within +/-10%.  Method 5 is based on closed-form equations which exactly match center-stick shape and Max deg/s.</li>
-                    <li><b>Method 2</b> (Narrow search) is the recommended method for FlightOne/Raceflight to Betaflight conversion.  Each approach has merits and drawbacks, this approach being a good compromise between maintaining center-stick "feel", while not grossly misrepresenting latter portions of the curve.</li>
+                    <li><b>FlightOne/Raceflight conversion</b> offers several methods minimizing error.  The "average" error is minimized in Methods 1 & 2.  The single-largest error (over full stick travel) is minimized in Method 3. The "Narrow" search differs from the "Wide" search in that it only considers rate profiles whose initial slope is within +/- 10%, ensuring center-stick feel is preserved.  Method 2 would be my recommended approach.  The approach used by RotorPilots & FlightOne is Method 3.</li>
                 </ul>
                 <hr>
                 <h3>Links</h3>
